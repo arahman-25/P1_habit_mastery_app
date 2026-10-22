@@ -9,6 +9,8 @@ class Settings extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.greenAccent,
+        shadowColor: Colors.black,
+        elevation: 3,
         title: Text(
           'Settings',
           style: GoogleFonts.jetBrainsMono(),

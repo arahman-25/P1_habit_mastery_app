@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
 import 'dashboard.dart';
+import 'history.dart';
+import 'settings.dart';
 
 void main() {
   runApp(const HabitMasteryApp());
@@ -11,9 +14,38 @@ class HabitMasteryApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: Dashboard(),
+      home: PersistentTabView(  
+        tabs: [
+          PersistentTabConfig(
+            screen: Dashboard(),
+            item: ItemConfig(
+              icon: Icon(Icons.home),
+              title: 'Dashboard',
+              iconSize: 35)
+          ),
+          PersistentTabConfig(
+            screen: History(),
+            item: ItemConfig(
+              icon: Icon(Icons.history),
+              title: 'History',
+              iconSize: 35
+              )
+            )
+        ], 
+        navBarBuilder: (navBarConfig) => Style1BottomNavBar(
+          navBarConfig: navBarConfig,
+          height: 70,
+          navBarDecoration: NavBarDecoration(
+            color: Colors.greenAccent,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black38,
+                blurRadius: 10  
+              )
+            ]
+          ),))
     );
   }
 }

@@ -37,6 +37,7 @@ dependencies:
   google_fonts: ^9.0.0
   flutter_svg: ^2.3.0
   rive: ^0.14.11
+  persistent_bottom_nav_bar_v2: ^6.5.0
 
 dev_dependencies:
   flutter_test:

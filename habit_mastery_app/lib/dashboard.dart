@@ -35,14 +35,14 @@ class Dashboard extends StatelessWidget {
               borderRadius: BorderRadiusGeometry.circular(3)
             )
           ),
-          SizedBox(height: 30),
+          SizedBox(height: 25),
           Text(
             'Weekly Completion Rate:',
             style: GoogleFonts.jetBrainsMono(
               fontSize: 25
             ),
           ),
-          SizedBox(height: 30),
+          SizedBox(height: 25),
           Stack(
             alignment: AlignmentDirectional.center,
             children: [
@@ -64,7 +64,7 @@ class Dashboard extends StatelessWidget {
               )
             ]
           ),
-          SizedBox(height: 30),
+          SizedBox(height: 25),
           ElevatedButton(
             onPressed: () {},
             style: ButtonStyle(
@@ -83,7 +83,7 @@ class Dashboard extends StatelessWidget {
             )
           ),
         ],
-      )
+      ),
     );
   }
 }
@@ -136,4 +136,3 @@ class SettingButtonState extends State<SettingButton> {
     );
   }
 }
-

@@ -19,10 +19,10 @@ class CreateEdit extends StatelessWidget {
         centerTitle: true,
       ),
       body: Column(
-        spacing: 30,
+        spacing: 40,
         children: [
           Container(
-            margin: EdgeInsets.only(top: 40, left: 25, right: 25),
+            margin: EdgeInsets.only(top: 45, left: 25, right: 25),
             decoration: BoxDecoration(
               borderRadius: BorderRadiusGeometry.circular(10),
               border: BoxBorder.all(
@@ -53,49 +53,8 @@ class CreateEdit extends StatelessWidget {
               ),
             )
           ),
+          CategoryFilter(),
           Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadiusGeometry.circular(10),
-              border: BoxBorder.all(
-                color: Colors.black,
-                width: 1),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.2),
-                  blurRadius: 15
-                )
-              ]
-            ),
-            child: DropdownMenu(
-              width: 360,
-              hintText: 'Select Category',
-              inputDecorationTheme: InputDecorationTheme(
-                filled: true,
-                fillColor: Colors.greenAccent,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide.none
-                ),
-                hintStyle: GoogleFonts.jetBrainsMono(
-                  color: Colors.black38
-                ),
-              ),
-              dropdownMenuEntries: [
-                DropdownMenuEntry(
-                  value: 's',
-                  label: 'Study'
-                ),
-                DropdownMenuEntry(
-                  value: 'r',
-                  label: 'Routine'
-                ),
-                DropdownMenuEntry(
-                  value: null,
-                  label: 'None')
-              ]
-            ),
-          )
-          /* Container(
             margin: EdgeInsets.only(left: 25, right: 25),
             decoration: BoxDecoration(
               borderRadius: BorderRadiusGeometry.circular(10),
@@ -110,7 +69,7 @@ class CreateEdit extends StatelessWidget {
               ]
             ),
             child: TextField(
-              readOnly: true,
+              maxLines: 4,
               style: GoogleFonts.jetBrainsMono(),
               decoration: InputDecoration(
                 filled: true,
@@ -119,31 +78,152 @@ class CreateEdit extends StatelessWidget {
                   borderRadius: BorderRadius.circular(10),
                   borderSide: BorderSide.none
                 ),
-                suffixIcon: Icon(
-                  Icons.arrow_drop_down,
-                  size: 45
-                ),
                 hint: Text(
-                  'Category',
+                  'Weekly Target',
                   style: GoogleFonts.jetBrainsMono(
                     color: Colors.black38
                   )
                 )
               ),
-              onTap: () {
-                showDialog(
-                  context: context,
-                  builder: (context) => SimpleDialog(
-                    title: Text(
-                      'Select Category'
-                    ),
-                  )
-                );
-              },
             )
-          )*/
+          ),
+          Container(
+            margin: EdgeInsets.only(left: 25, right: 25),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadiusGeometry.circular(10),
+              border: BoxBorder.all(
+                color: Colors.black,
+                width: 1),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.2),
+                  blurRadius: 15
+                )
+              ]
+            ),
+            child: TextField(
+              maxLines: 6,
+              style: GoogleFonts.jetBrainsMono(),
+              decoration: InputDecoration(
+                filled: true,
+                fillColor: Colors.greenAccent,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide.none
+                ),
+                hint: Text(
+                  'Motivation Note',
+                  style: GoogleFonts.jetBrainsMono(
+                    color: Colors.black38
+                  )
+                )
+              ),
+            )
+          ),
+          ElevatedButton(
+            onPressed: () {},
+            style: ButtonStyle(
+              backgroundColor: WidgetStatePropertyAll(Colors.greenAccent),
+              minimumSize: WidgetStatePropertyAll(Size(250, 60)),
+              side: WidgetStatePropertyAll(BorderSide()),
+              shape: WidgetStatePropertyAll(
+                RoundedRectangleBorder(
+                  borderRadius: BorderRadiusGeometry.circular(3)))
+            ),
+            child: Text(
+              'Create/Edit',
+              style: GoogleFonts.jetBrainsMono(
+                color: Colors.black,
+                fontSize: 20
+              ),
+            )
+          ),
         ]
       )
+    );
+  }
+}
+
+class CategoryFilter extends StatefulWidget {
+  const new({super.key});
+
+  @override
+  State<CategoryFilter> createState() => _CategoryFilterState();
+}
+
+class _CategoryFilterState extends State<CategoryFilter> {
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      spacing: 22,
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.2),
+                blurRadius: 15
+              )
+            ]
+          ),
+          child: DropdownMenu(
+            width: 280,
+            hintText: 'Select Category',
+            inputDecorationTheme: InputDecorationTheme(
+              filled: true,
+              fillColor: Colors.greenAccent,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide()
+              ),
+              hintStyle: GoogleFonts.jetBrainsMono(
+                color: Colors.black38
+              ),
+            ),
+            menuStyle: MenuStyle(
+              backgroundColor: WidgetStateProperty.all(
+                Colors.greenAccent
+              ),
+              side: WidgetStatePropertyAll(
+                BorderSide(
+                    color: Colors.black54,
+                  )
+              ),
+              shape: WidgetStatePropertyAll(
+                RoundedRectangleBorder(
+                  borderRadius: BorderRadiusGeometry.circular(10),
+                ),
+              ),
+            ),
+            dropdownMenuEntries: [
+              DropdownMenuEntry(
+                value: 's',
+                label: 'Study'
+              ),
+              DropdownMenuEntry(
+                value: 'r',
+                label: 'Routine'
+              ),
+            ]
+          ),
+        ),
+        FloatingActionButton(
+          onPressed: () {},
+          backgroundColor: Colors.greenAccent,
+          tooltip: 'Add Category',
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadiusGeometry.circular(10),
+            side: BorderSide(
+              color: Colors.black54
+            )
+          ),
+          child: Icon(
+            Icons.add,
+            size: 30,
+            color: Colors.black45)
+        )
+      ],
     );
   }
 }

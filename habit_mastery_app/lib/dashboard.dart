@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:habit_mastery_app/details.dart';
 import 'package:habit_mastery_app/settings.dart';
 
 class Dashboard extends StatelessWidget {
@@ -66,7 +67,11 @@ class Dashboard extends StatelessWidget {
           ),
           SizedBox(height: 25),
           ElevatedButton(
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(
+                context, 
+                MaterialPageRoute(builder: (context) => Details()));
+            },
             style: ButtonStyle(
               backgroundColor: WidgetStatePropertyAll(Colors.greenAccent),
               minimumSize: WidgetStatePropertyAll(Size(250, 60)),
@@ -76,10 +81,11 @@ class Dashboard extends StatelessWidget {
                   borderRadius: BorderRadiusGeometry.circular(3)))
             ),
             child: Text(
-              'Check In',
+              'View Cycle Details',
               style: GoogleFonts.jetBrainsMono(
                 color: Colors.black,
-                fontSize: 20)
+                fontSize: 20
+              ),
             )
           ),
         ],

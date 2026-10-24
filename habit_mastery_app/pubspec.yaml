@@ -38,6 +38,8 @@ dependencies:
   flutter_svg: ^2.3.0
   rive: ^0.14.11
   persistent_bottom_nav_bar_v2: ^6.5.0
+  sqflite: ^2.4.5
+  path: ^1.9.1
 
 dev_dependencies:
   flutter_test:

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:habit_mastery_app/create_edit.dart';
 import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
 import 'dashboard.dart';
 import 'history.dart';
@@ -26,13 +27,21 @@ class HabitMasteryApp extends StatelessWidget {
               iconSize: 35)
           ),
           PersistentTabConfig(
+            screen: CreateEdit(), 
+            item: ItemConfig(
+              icon: Icon(Icons.add),
+              title: 'Create/Edit',
+              iconSize: 35
+            )
+          ),
+          PersistentTabConfig(
             screen: History(),
             item: ItemConfig(
               icon: Icon(Icons.history),
               title: 'History',
               iconSize: 35
-              )
             )
+          )
         ], 
         navBarBuilder: (navBarConfig) => Style1BottomNavBar(
           navBarConfig: navBarConfig,

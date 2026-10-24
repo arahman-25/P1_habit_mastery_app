@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:habit_mastery_app/create_edit.dart';
+import 'package:habit_mastery_app/screens/create_edit.dart';
 import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
-import 'dashboard.dart';
-import 'history.dart';
+import 'screens/dashboard.dart';
+import 'screens/history.dart';
 
 void main() {
   runApp(const HabitMasteryApp());

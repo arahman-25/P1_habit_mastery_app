@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:habit_mastery_app/details.dart';
-import 'package:habit_mastery_app/settings.dart';
+import 'details.dart';
+import 'settings.dart';
 
 class Dashboard extends StatelessWidget {
   const Dashboard({super.key});

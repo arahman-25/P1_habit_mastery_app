@@ -3,8 +3,10 @@ import 'package:habit_mastery_app/screens/create_edit.dart';
 import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
 import 'screens/dashboard.dart';
 import 'screens/history.dart';
+import 'screens/settings.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(const HabitMasteryApp());
 }
 

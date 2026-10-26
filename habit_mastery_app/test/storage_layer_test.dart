@@ -75,7 +75,7 @@ void main() {
       expect(settingsAfterReset.weeklyGoal, 5);
     });
 
-    test('verifies storage info reports database status', () async {
+    test('verifies storage info reports database status and row counts', () async {
       final service = SettingsService();
       final info = await service.getStorageInfo();
 
@@ -83,6 +83,11 @@ void main() {
       expect(info['databaseName'], DatabaseHelper.databaseName);
       expect(info['version'], 1);
       expect(info['path'], isNotEmpty);
+      expect(info['rowCounts'], isNotNull);
+      final rowCounts = info['rowCounts'] as Map<String, int>;
+      expect(rowCounts[DatabaseHelper.tableSettings], greaterThan(0));
+      expect(rowCounts[DatabaseHelper.tableHabits], equals(0));
+      expect(rowCounts[DatabaseHelper.tableCheckIns], equals(0));
     });
   });
 }

@@ -8,17 +8,37 @@ class DatabaseHelper {
   // Table names
   static const String tableSettings = 'app_settings';
   static const String tableHabits = 'habits';
-  static const String tableHabitLogs = 'habit_logs';
+  static const String tableCheckIns = 'check_ins';
 
   // Settings column names
   static const String columnKey = 'key';
   static const String columnValue = 'value';
 
-  // Singleton instance
-  DatabaseHelper._privateConstructor();
-  static final DatabaseHelper instance = DatabaseHelper._privateConstructor();
+  // Habit column names
+  static const String columnHabitId = 'id';
+  static const String columnHabitTitle = 'title';
+  static const String columnHabitCategory = 'category';
+  static const String columnHabitWeeklyTarget = 'weeklyTarget';
+  static const String columnHabitStartedLocalDate = 'startedLocalDate';
+  static const String columnHabitMotivation = 'motivation';
 
-  static Database? _database;
+  // CheckIn column names
+  static const String columnCheckInId = 'id';
+  static const String columnCheckInHabitId = 'habitId';
+  static const String columnCheckInLocalDate = 'localDate';
+  static const String columnCheckInNote = 'note';
+
+  final String _dbName;
+  Database? _database;
+
+  // Singleton instance for app usage
+  DatabaseHelper._internal({String name = databaseName}) : _dbName = name;
+  static final DatabaseHelper instance = DatabaseHelper._internal();
+
+  /// Factory constructor for isolated test databases
+  factory DatabaseHelper.forTesting({String? name}) {
+    return DatabaseHelper._internal(name: name ?? inMemoryDatabasePath);
+  }
 
   Future<Database> get database async {
     if (_database != null) return _database!;
@@ -27,8 +47,13 @@ class DatabaseHelper {
   }
 
   Future<Database> _initDatabase() async {
-    final databasesPath = await getDatabasesPath();
-    final path = join(databasesPath, databaseName);
+    final String path;
+    if (_dbName == inMemoryDatabasePath || _dbName.startsWith(':memory:')) {
+      path = inMemoryDatabasePath;
+    } else {
+      final databasesPath = await getDatabasesPath();
+      path = join(databasesPath, _dbName);
+    }
 
     return await openDatabase(
       path,
@@ -39,6 +64,7 @@ class DatabaseHelper {
   }
 
   Future<void> _onConfigure(Database db) async {
+    // Invariant: Enforce SQLite Foreign Key constraints
     await db.execute('PRAGMA foreign_keys = ON');
   }
 
@@ -48,6 +74,30 @@ class DatabaseHelper {
       CREATE TABLE $tableSettings (
         $columnKey TEXT PRIMARY KEY,
         $columnValue TEXT NOT NULL
+      )
+    ''');
+
+    // 2. Habits table with weeklyTarget CHECK constraint (1..7)
+    await db.execute('''
+      CREATE TABLE $tableHabits (
+        $columnHabitId INTEGER PRIMARY KEY AUTOINCREMENT,
+        $columnHabitTitle TEXT NOT NULL,
+        $columnHabitCategory TEXT NOT NULL,
+        $columnHabitWeeklyTarget INTEGER NOT NULL CHECK($columnHabitWeeklyTarget BETWEEN 1 AND 7),
+        $columnHabitStartedLocalDate TEXT NOT NULL,
+        $columnHabitMotivation TEXT
+      )
+    ''');
+
+    // 3. Check-ins table with cascade deletion and unique same-day constraint
+    await db.execute('''
+      CREATE TABLE $tableCheckIns (
+        $columnCheckInId INTEGER PRIMARY KEY AUTOINCREMENT,
+        $columnCheckInHabitId INTEGER NOT NULL,
+        $columnCheckInLocalDate TEXT NOT NULL,
+        $columnCheckInNote TEXT,
+        FOREIGN KEY ($columnCheckInHabitId) REFERENCES $tableHabits ($columnHabitId) ON DELETE CASCADE,
+        CONSTRAINT uq_habit_date UNIQUE ($columnCheckInHabitId, $columnCheckInLocalDate)
       )
     ''');
 
@@ -72,38 +122,8 @@ class DatabaseHelper {
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
     }
-
-    // 2. Habits table ready for the rest of the application
-    await db.execute('''
-      CREATE TABLE $tableHabits (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        title TEXT NOT NULL,
-        category TEXT NOT NULL,
-        description TEXT,
-        frequency TEXT NOT NULL DEFAULT 'daily',
-        target_days INTEGER NOT NULL DEFAULT 7,
-        created_at TEXT NOT NULL,
-        color INTEGER,
-        is_archived INTEGER NOT NULL DEFAULT 0
-      )
-    ''');
-
-    // 3. Habit completion logs table
-    await db.execute('''
-      CREATE TABLE $tableHabitLogs (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        habit_id INTEGER NOT NULL,
-        completed_at TEXT NOT NULL,
-        notes TEXT,
-        FOREIGN KEY (habit_id) REFERENCES $tableHabits (id) ON DELETE CASCADE
-      )
-    ''');
-
     await batch.commit(noResult: true);
   }
-
-  // Habit Management
-  
 
   // Settings operations
   Future<Map<String, String>> getAllSettings() async {
@@ -165,8 +185,11 @@ class DatabaseHelper {
 
   // Database info & maintenance
   Future<String> getDatabasePath() async {
+    if (_dbName == inMemoryDatabasePath || _dbName.startsWith(':memory:')) {
+      return inMemoryDatabasePath;
+    }
     final databasesPath = await getDatabasesPath();
-    return join(databasesPath, databaseName);
+    return join(databasesPath, _dbName);
   }
 
   Future<int> getDatabaseVersion() async {
@@ -178,10 +201,32 @@ class DatabaseHelper {
     return databaseVersion;
   }
 
+  Future<Map<String, int>> getTableRowCounts() async {
+    final db = await database;
+    final habitsCount = Sqflite.firstIntValue(
+          await db.rawQuery('SELECT COUNT(*) FROM $tableHabits'),
+        ) ??
+        0;
+    final checkInsCount = Sqflite.firstIntValue(
+          await db.rawQuery('SELECT COUNT(*) FROM $tableCheckIns'),
+        ) ??
+        0;
+    final settingsCount = Sqflite.firstIntValue(
+          await db.rawQuery('SELECT COUNT(*) FROM $tableSettings'),
+        ) ??
+        0;
+
+    return {
+      tableHabits: habitsCount,
+      tableCheckIns: checkInsCount,
+      tableSettings: settingsCount,
+    };
+  }
+
   Future<void> clearAllData() async {
     final db = await database;
     await db.transaction((txn) async {
-      await txn.delete(tableHabitLogs);
+      await txn.delete(tableCheckIns);
       await txn.delete(tableHabits);
       await txn.delete(tableSettings);
 

@@ -35,12 +35,14 @@ class SettingsService {
     final db = await _dbHelper.database;
     final isOpen = db.isOpen;
     final version = await _dbHelper.getDatabaseVersion();
+    final rowCounts = await _dbHelper.getTableRowCounts();
 
     return {
       'path': path,
       'isOpen': isOpen,
       'version': version,
       'databaseName': DatabaseHelper.databaseName,
+      'rowCounts': rowCounts,
     };
   }
 }

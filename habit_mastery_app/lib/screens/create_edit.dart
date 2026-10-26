@@ -32,9 +32,13 @@ class CreateEditForms extends StatefulWidget {
 }
 
 class _CreateEditFormsState extends State<CreateEditForms> {
-  TextEditingController _titleController = TextEditingController();
-  TextEditingController _categoryController = TextEditingController();
-  TextEditingController _motivationController = TextEditingController();
+  final TextEditingController _titleController = TextEditingController();
+  final TextEditingController _categoryController = TextEditingController();
+  final TextEditingController _motivationController = TextEditingController();
+
+  String titleProof = '';
+  double sliderInitialValue = 1;
+  final int _weeklyTarget = 7;
 
   @override
   void dispose() {
@@ -44,22 +48,13 @@ class _CreateEditFormsState extends State<CreateEditForms> {
     super.dispose();
   }
 
-  List<String> categoryList = [];
-  List<DropdownMenuEntry<String>> get dropdownEntries {
-    return categoryList.map((category) => DropdownMenuEntry(
-      value: category,
-      label: category,
-      style: MenuItemButton.styleFrom(
-        textStyle: GoogleFonts.jetBrainsMono()
-      )
-      )).toList();
-  }
-
   @override
   Widget build(BuildContext context) {
     return Column(
       spacing: 40,
       children: [
+
+
         // Habit Title Text Field
         Container(
           margin: EdgeInsets.only(top: 45, left: 25, right: 25),
@@ -76,6 +71,7 @@ class _CreateEditFormsState extends State<CreateEditForms> {
             ]
           ),
           child: TextField(
+            autofocus: true,
             controller: _titleController,
             style: GoogleFonts.jetBrainsMono(),
             decoration: InputDecoration(
@@ -96,133 +92,9 @@ class _CreateEditFormsState extends State<CreateEditForms> {
         ),
 
 
-        // Category Filter Text Field & Button
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          spacing: 15,
-          children: [
-            Container(
-              decoration: BoxDecoration(
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.2),
-                    blurRadius: 15
-                  )
-                ]
-              ),
-              child: DropdownMenu<String>(
-                width: 290,
-                hintText: 'Select Category',
-                inputDecorationTheme: InputDecorationTheme(
-                  filled: true,
-                  fillColor: Colors.greenAccent,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide()
-                  ),
-                  hintStyle: GoogleFonts.jetBrainsMono(
-                    color: Colors.black38
-                  ),
-                ),
-                menuStyle: MenuStyle(
-                  backgroundColor: WidgetStateProperty.all(
-                    Colors.greenAccent
-                  ),
-                  side: WidgetStatePropertyAll(
-                    BorderSide(
-                        color: Colors.black54,
-                      )
-                  ),
-                  shape: WidgetStatePropertyAll(
-                    RoundedRectangleBorder(
-                      borderRadius: BorderRadiusGeometry.circular(10),
-                    ),
-                  ),
-                ),
-                dropdownMenuEntries: categoryList.map<DropdownMenuEntry<String>>((String value) {
-                  return DropdownMenuEntry<String>(
-                    value: value,
-                    label: value
-                  );
-                }).toList(),
-              ),
-            ),
-            FloatingActionButton(
-              onPressed: () {
-                showDialog<String>(
-                  context: context,
-                  builder: (BuildContext dialogContext) {
-                    return AlertDialog(
-                      backgroundColor: Colors.green,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        side: const BorderSide(color: Colors.black, width: 2),
-                      ),
-                      title: Text(
-                        'Add Category',
-                        style: GoogleFonts.jetBrainsMono()
-                      ),
-                      actions: [
-                        TextField(
-                          controller: _categoryController,
-                          style: GoogleFonts.jetBrainsMono(),
-                          decoration: InputDecoration(
-                            filled: true,
-                            fillColor: Colors.greenAccent,
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              borderSide: BorderSide.none
-                            ),
-                            hint: Text(
-                              'Add Category',
-                              style: GoogleFonts.jetBrainsMono(
-                                color: Colors.black38
-                              )
-                            )
-                          ),
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            setState(() => categoryList.add(_categoryController.text.trim()));
-                            Navigator.of(dialogContext).pop();
-                            _categoryController.clear();
-                          },
-                          child: Text(
-                            'Create',
-                            style: GoogleFonts.jetBrainsMono(
-                              color: Colors.black
-                            )
-                          ))
-                      ],
-                    );
-                  }
-                );
-              },
-              backgroundColor: Colors.greenAccent,
-              tooltip: 'Add Category',
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadiusGeometry.circular(10),
-                side: BorderSide(
-                  color: Colors.black54
-                )
-              ),
-              child: Icon(
-                Icons.add,
-                size: 30,
-                color: Colors.black45)
-            )
-          ],
-        ),
-
-
-        // Weekly Target Slider
+        // Category Filter Text Field
         Container(
-          margin: EdgeInsets.only(left: 25, right: 25),
           decoration: BoxDecoration(
-            borderRadius: BorderRadiusGeometry.circular(10),
-            border: BoxBorder.all(
-              color: Colors.black,
-              width: 1),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.2),
@@ -230,25 +102,109 @@ class _CreateEditFormsState extends State<CreateEditForms> {
               )
             ]
           ),
-          child: TextField(
-            maxLines: 4,
-            style: GoogleFonts.jetBrainsMono(),
-            decoration: InputDecoration(
+          child: DropdownMenu<String>(
+            controller: _categoryController,
+            width: 360,
+            hintText: 'Select Category',
+            inputDecorationTheme: InputDecorationTheme(
               filled: true,
               fillColor: Colors.greenAccent,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
-                borderSide: BorderSide.none
+                borderSide: BorderSide()
               ),
-              hint: Text(
-                'Weekly Target',
-                style: GoogleFonts.jetBrainsMono(
-                  color: Colors.black38
-                )
-              )
+              hintStyle: GoogleFonts.jetBrainsMono(
+                color: Colors.black38
+              ),
             ),
+            menuStyle: MenuStyle(
+              backgroundColor: WidgetStateProperty.all(
+                Colors.greenAccent
+              ),
+              side: WidgetStatePropertyAll(
+                BorderSide(
+                    color: Colors.black54,
+                  )
+              ),
+              shape: WidgetStatePropertyAll(
+                RoundedRectangleBorder(
+                  borderRadius: BorderRadiusGeometry.circular(10),
+                ),
+              ),
+            ),
+            dropdownMenuEntries: [
+              DropdownMenuEntry(
+                value: 'all',
+                label: 'All'
+              ),
+              DropdownMenuEntry(
+                value: 'study',
+                label: 'Study'
+              ),
+              DropdownMenuEntry(
+                value: 'health',
+                label: 'Health'
+              ),
+              DropdownMenuEntry(
+                value: 'creative',
+                label: 'Creative'
+              ),
+              DropdownMenuEntry(
+                value: 'mindfulness',
+                label: 'Mindfulness'
+              )
+            ]
+          ),
+        ),
+
+
+        // Weekly Target Slider
+        Container(
+          margin: EdgeInsets.only(left: 25, right: 25),
+          decoration: BoxDecoration(
+            color: Colors.greenAccent,
+            borderRadius: BorderRadiusGeometry.circular(5),
+            border: BoxBorder.all(
+              color: Colors.black,
+              width: 1
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.2),
+                blurRadius: 15
+              )
+            ]
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: EdgeInsetsGeometry.fromLTRB(15, 10, 0, 0),
+                child: Text(
+                  'Weekly Target Slider: ${sliderInitialValue.toInt()}/$_weeklyTarget',
+                  style: GoogleFonts.jetBrainsMono(
+                    color: Colors.black54,
+                    fontSize: 20
+                  ),
+                )
+              ),
+              Slider(
+                activeColor: Colors.green,
+                inactiveColor: Colors.green.shade900,
+                value: sliderInitialValue,
+                max: _weeklyTarget.toDouble(),
+                min: 1,
+                divisions: _weeklyTarget - 1,
+                onChanged: (value) {
+                  setState(() {
+                    sliderInitialValue = value;
+                  });
+                },
+              ),
+            ],
           )
         ),
+          
         // Motivation Note
         Container(
           margin: EdgeInsets.only(left: 25, right: 25),
@@ -265,7 +221,7 @@ class _CreateEditFormsState extends State<CreateEditForms> {
             ]
           ),
           child: TextField(
-            maxLines: 6,
+            maxLines: 8,
             style: GoogleFonts.jetBrainsMono(),
             decoration: InputDecoration(
               filled: true,
@@ -290,6 +246,7 @@ class _CreateEditFormsState extends State<CreateEditForms> {
               context: context,
               builder: (BuildContext dialogContext) {
                 return SimpleDialog(
+                  contentPadding: EdgeInsetsGeometry.fromLTRB(25, 12, 10, 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                     side: const BorderSide(color: Colors.black, width: 2),
@@ -300,13 +257,23 @@ class _CreateEditFormsState extends State<CreateEditForms> {
                   ),
                   children: [
                     Text(
-                      _titleController.text,
+                      titleProof,
+                      style: GoogleFonts.jetBrainsMono()
+                    ),
+                    Text(
+                      _categoryController.text,
                       style: GoogleFonts.jetBrainsMono()
                     )
                   ]
                 );
               }
             );
+            if (_titleController.text.isNotEmpty) {
+              setState(() {
+                titleProof = _titleController.text;
+                _titleController.clear();
+              });
+            }
           },
           style: ButtonStyle(
             backgroundColor: WidgetStatePropertyAll(Colors.greenAccent),

@@ -78,6 +78,7 @@ class DatabaseHelper {
       CREATE TABLE $tableHabits (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         title TEXT NOT NULL,
+        category TEXT NOT NULL,
         description TEXT,
         frequency TEXT NOT NULL DEFAULT 'daily',
         target_days INTEGER NOT NULL DEFAULT 7,
@@ -100,6 +101,9 @@ class DatabaseHelper {
 
     await batch.commit(noResult: true);
   }
+
+  // Habit Management
+  
 
   // Settings operations
   Future<Map<String, String>> getAllSettings() async {

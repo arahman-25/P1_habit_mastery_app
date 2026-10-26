@@ -25,7 +25,7 @@ class AppSettings {
   }) {
     return AppSettings(
       notificationsEnabled:
-          notificationsEnabled ?? this.notificationsEnabled,
+        notificationsEnabled ?? this.notificationsEnabled,
       reminderTime: reminderTime ?? this.reminderTime,
       darkMode: darkMode ?? this.darkMode,
       soundEffects: soundEffects ?? this.soundEffects,

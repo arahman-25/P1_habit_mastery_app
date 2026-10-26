@@ -23,6 +23,7 @@ class CreateEdit extends StatelessWidget {
   }
 }
 
+
 class CreateEditForms extends StatefulWidget {
   const new({super.key});
 
@@ -31,17 +32,27 @@ class CreateEditForms extends StatefulWidget {
 }
 
 class _CreateEditFormsState extends State<CreateEditForms> {
-  String? habitTitle;
-  List<String?> category = [];
-  String? weeklyTarget;
-  String? motivationNote;
-
-  final _controller = TextEditingController();
+  TextEditingController _titleController = TextEditingController();
+  TextEditingController _categoryController = TextEditingController();
+  TextEditingController _motivationController = TextEditingController();
 
   @override
   void dispose() {
-    _controller.dispose();
+    _titleController.dispose();
+    _categoryController.dispose();
+    _motivationController.dispose();
     super.dispose();
+  }
+
+  List<String> categoryList = [];
+  List<DropdownMenuEntry<String>> get dropdownEntries {
+    return categoryList.map((category) => DropdownMenuEntry(
+      value: category,
+      label: category,
+      style: MenuItemButton.styleFrom(
+        textStyle: GoogleFonts.jetBrainsMono()
+      )
+      )).toList();
   }
 
   @override
@@ -49,6 +60,7 @@ class _CreateEditFormsState extends State<CreateEditForms> {
     return Column(
       spacing: 40,
       children: [
+        // Habit Title Text Field
         Container(
           margin: EdgeInsets.only(top: 45, left: 25, right: 25),
           decoration: BoxDecoration(
@@ -64,10 +76,7 @@ class _CreateEditFormsState extends State<CreateEditForms> {
             ]
           ),
           child: TextField(
-            controller: _controller,
-            onSubmitted: (value) {
-              habitTitle = value;
-            },
+            controller: _titleController,
             style: GoogleFonts.jetBrainsMono(),
             decoration: InputDecoration(
               filled: true,
@@ -85,7 +94,128 @@ class _CreateEditFormsState extends State<CreateEditForms> {
             ),
           )
         ),
-        CategoryFilter(),
+
+
+        // Category Filter Text Field & Button
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          spacing: 15,
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.2),
+                    blurRadius: 15
+                  )
+                ]
+              ),
+              child: DropdownMenu<String>(
+                width: 290,
+                hintText: 'Select Category',
+                inputDecorationTheme: InputDecorationTheme(
+                  filled: true,
+                  fillColor: Colors.greenAccent,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide()
+                  ),
+                  hintStyle: GoogleFonts.jetBrainsMono(
+                    color: Colors.black38
+                  ),
+                ),
+                menuStyle: MenuStyle(
+                  backgroundColor: WidgetStateProperty.all(
+                    Colors.greenAccent
+                  ),
+                  side: WidgetStatePropertyAll(
+                    BorderSide(
+                        color: Colors.black54,
+                      )
+                  ),
+                  shape: WidgetStatePropertyAll(
+                    RoundedRectangleBorder(
+                      borderRadius: BorderRadiusGeometry.circular(10),
+                    ),
+                  ),
+                ),
+                dropdownMenuEntries: categoryList.map<DropdownMenuEntry<String>>((String value) {
+                  return DropdownMenuEntry<String>(
+                    value: value,
+                    label: value
+                  );
+                }).toList(),
+              ),
+            ),
+            FloatingActionButton(
+              onPressed: () {
+                showDialog<String>(
+                  context: context,
+                  builder: (BuildContext dialogContext) {
+                    return AlertDialog(
+                      backgroundColor: Colors.green,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        side: const BorderSide(color: Colors.black, width: 2),
+                      ),
+                      title: Text(
+                        'Add Category',
+                        style: GoogleFonts.jetBrainsMono()
+                      ),
+                      actions: [
+                        TextField(
+                          controller: _categoryController,
+                          style: GoogleFonts.jetBrainsMono(),
+                          decoration: InputDecoration(
+                            filled: true,
+                            fillColor: Colors.greenAccent,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: BorderSide.none
+                            ),
+                            hint: Text(
+                              'Add Category',
+                              style: GoogleFonts.jetBrainsMono(
+                                color: Colors.black38
+                              )
+                            )
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            setState(() => categoryList.add(_categoryController.text.trim()));
+                            Navigator.of(dialogContext).pop();
+                            _categoryController.clear();
+                          },
+                          child: Text(
+                            'Create',
+                            style: GoogleFonts.jetBrainsMono(
+                              color: Colors.black
+                            )
+                          ))
+                      ],
+                    );
+                  }
+                );
+              },
+              backgroundColor: Colors.greenAccent,
+              tooltip: 'Add Category',
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadiusGeometry.circular(10),
+                side: BorderSide(
+                  color: Colors.black54
+                )
+              ),
+              child: Icon(
+                Icons.add,
+                size: 30,
+                color: Colors.black45)
+            )
+          ],
+        ),
+
+
+        // Weekly Target Slider
         Container(
           margin: EdgeInsets.only(left: 25, right: 25),
           decoration: BoxDecoration(
@@ -119,6 +249,7 @@ class _CreateEditFormsState extends State<CreateEditForms> {
             ),
           )
         ),
+        // Motivation Note
         Container(
           margin: EdgeInsets.only(left: 25, right: 25),
           decoration: BoxDecoration(
@@ -152,8 +283,31 @@ class _CreateEditFormsState extends State<CreateEditForms> {
             ),
           )
         ),
+        // Edit/Create Button
         ElevatedButton(
-          onPressed: () {},
+          onPressed: () {
+            showDialog(
+              context: context,
+              builder: (BuildContext dialogContext) {
+                return SimpleDialog(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    side: const BorderSide(color: Colors.black, width: 2),
+                  ),
+                  title: Text(
+                    'Created Habit Successfully',
+                    style: GoogleFonts.jetBrainsMono()
+                  ),
+                  children: [
+                    Text(
+                      _titleController.text,
+                      style: GoogleFonts.jetBrainsMono()
+                    )
+                  ]
+                );
+              }
+            );
+          },
           style: ButtonStyle(
             backgroundColor: WidgetStatePropertyAll(Colors.greenAccent),
             minimumSize: WidgetStatePropertyAll(Size(250, 60)),
@@ -171,92 +325,6 @@ class _CreateEditFormsState extends State<CreateEditForms> {
           )
         ),
       ]
-    );
-  }
-}
-
-class CategoryFilter extends StatefulWidget {
-  const new({super.key});
-
-  @override
-  State<CategoryFilter> createState() => _CategoryFilterState();
-}
-
-class _CategoryFilterState extends State<CategoryFilter> {
-  
-  
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      spacing: 22,
-      children: [
-        Container(
-          decoration: BoxDecoration(
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.2),
-                blurRadius: 15
-              )
-            ]
-          ),
-          child: DropdownMenu(
-            width: 280,
-            hintText: 'Select Category',
-            inputDecorationTheme: InputDecorationTheme(
-              filled: true,
-              fillColor: Colors.greenAccent,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: BorderSide()
-              ),
-              hintStyle: GoogleFonts.jetBrainsMono(
-                color: Colors.black38
-              ),
-            ),
-            menuStyle: MenuStyle(
-              backgroundColor: WidgetStateProperty.all(
-                Colors.greenAccent
-              ),
-              side: WidgetStatePropertyAll(
-                BorderSide(
-                    color: Colors.black54,
-                  )
-              ),
-              shape: WidgetStatePropertyAll(
-                RoundedRectangleBorder(
-                  borderRadius: BorderRadiusGeometry.circular(10),
-                ),
-              ),
-            ),
-            dropdownMenuEntries: [
-              DropdownMenuEntry(
-                value: 's',
-                label: 'Study'
-              ),
-              DropdownMenuEntry(
-                value: 'r',
-                label: 'Routine'
-              ),
-            ]
-          ),
-        ),
-        FloatingActionButton(
-          onPressed: () {},
-          backgroundColor: Colors.greenAccent,
-          tooltip: 'Add Category',
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadiusGeometry.circular(10),
-            side: BorderSide(
-              color: Colors.black54
-            )
-          ),
-          child: Icon(
-            Icons.add,
-            size: 30,
-            color: Colors.black45)
-        )
-      ],
     );
   }
 }

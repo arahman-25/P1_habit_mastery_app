@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
+
 import 'screens/create_edit.dart';
 import 'screens/dashboard.dart';
 import 'screens/history.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+  // Fonts are bundled locally in assets/google_fonts/.
+  GoogleFonts.config.allowRuntimeFetching = false;
   runApp(const HabitMasteryApp());
 }
 

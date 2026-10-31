@@ -2,10 +2,13 @@ import '../database/database_helper.dart';
 import '../models/app_settings.dart';
 
 class SettingsService {
-  final DatabaseHelper _dbHelper;
+  final DatabaseHelper? _customDbHelper;
 
-  SettingsService({DatabaseHelper? dbHelper})
-      : _dbHelper = dbHelper ?? DatabaseHelper.instance;
+  SettingsService({DatabaseHelper? dbHelper}) : _customDbHelper = dbHelper;
+
+  DatabaseHelper get _dbHelper => _customDbHelper ?? DatabaseHelper.instance;
+
+  static final SettingsService instance = SettingsService();
 
   Future<AppSettings> loadSettings() async {
     final map = await _dbHelper.getAllSettings();

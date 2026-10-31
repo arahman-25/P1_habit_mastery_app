@@ -33,7 +33,13 @@ class DatabaseHelper {
 
   // Singleton instance for app usage
   DatabaseHelper._internal({String name = databaseName}) : _dbName = name;
-  static final DatabaseHelper instance = DatabaseHelper._internal();
+  static DatabaseHelper _instance = DatabaseHelper._internal();
+  static DatabaseHelper get instance => _instance;
+
+  /// Injects an isolated DatabaseHelper instance for tests
+  static void setTestInstance(DatabaseHelper? helper) {
+    _instance = helper ?? DatabaseHelper._internal();
+  }
 
   /// Factory constructor for isolated test databases
   factory DatabaseHelper.forTesting({String? name}) {
@@ -51,7 +57,7 @@ class DatabaseHelper {
     if (_dbName == inMemoryDatabasePath || _dbName.startsWith(':memory:')) {
       path = inMemoryDatabasePath;
     } else {
-      final databasesPath = await getDatabasesPath();
+      final databasesPath = await databaseFactory.getDatabasesPath();
       path = join(databasesPath, _dbName);
     }
 

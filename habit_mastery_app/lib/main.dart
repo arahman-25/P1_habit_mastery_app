@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:habit_mastery_app/screens/create_edit.dart';
 import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
+import 'screens/create_edit.dart';
 import 'screens/dashboard.dart';
 import 'screens/history.dart';
 
@@ -12,50 +12,68 @@ void main() {
 class HabitMasteryApp extends StatelessWidget {
   const HabitMasteryApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      title: 'Habit Mastery App',
       debugShowCheckedModeBanner: false,
-      home: PersistentTabView(  
+      theme: ThemeData(
+        useMaterial3: true,
+        primaryColor: Colors.green,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.green,
+          primary: Colors.green.shade800,
+          secondary: Colors.greenAccent,
+        ),
+      ),
+      home: PersistentTabView(
         tabs: [
           PersistentTabConfig(
-            screen: Dashboard(),
+            screen: const Dashboard(),
             item: ItemConfig(
-              icon: Icon(Icons.home),
+              icon: const Icon(Icons.home),
               title: 'Dashboard',
-              iconSize: 35)
+              iconSize: 32,
+              activeForegroundColor: Colors.black,
+              inactiveForegroundColor: Colors.black54,
+            ),
           ),
           PersistentTabConfig(
-            screen: CreateEdit(), 
+            screen: const CreateEdit(),
             item: ItemConfig(
-              icon: Icon(Icons.add),
-              title: 'Create/Edit',
-              iconSize: 35
-            )
+              icon: const Icon(Icons.add_circle_outline),
+              title: 'Plant Habit',
+              iconSize: 32,
+              activeForegroundColor: Colors.black,
+              inactiveForegroundColor: Colors.black54,
+            ),
           ),
           PersistentTabConfig(
-            screen: History(),
+            screen: const History(),
             item: ItemConfig(
-              icon: Icon(Icons.history),
+              icon: const Icon(Icons.history),
               title: 'History',
-              iconSize: 35
-            )
-          )
-        ], 
+              iconSize: 32,
+              activeForegroundColor: Colors.black,
+              inactiveForegroundColor: Colors.black54,
+            ),
+          ),
+        ],
         navBarBuilder: (navBarConfig) => Style1BottomNavBar(
           navBarConfig: navBarConfig,
-          height: 70,
-          navBarDecoration: NavBarDecoration(
+          height: 65,
+          navBarDecoration: const NavBarDecoration(
             color: Colors.greenAccent,
             boxShadow: [
               BoxShadow(
-                color: Colors.black38,
-                blurRadius: 10  
-              )
-            ]
-          ),))
+                color: Colors.black26,
+                blurRadius: 8,
+                offset: Offset(0, -2),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
-

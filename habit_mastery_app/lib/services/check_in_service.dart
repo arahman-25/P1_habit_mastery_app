@@ -4,14 +4,7 @@ import '../models/habit.dart';
 import '../utils/calendar_utils.dart';
 import 'service_exceptions.dart';
 
-/// Service responsible for CheckIn entity CRUD operations and integrity invariants.
-///
-/// Follows AGENTS.md Sections 4 & 5 invariants:
-/// - Check-in dates cannot precede the habit start date (`check_in.localDate >= habit.startedLocalDate`).
-/// - Future check-in dates are disallowed (`check_in.localDate <= today`).
-/// - Strict Same-Day Policy: Only one check-in per habit per local calendar date.
-///   Pre-checked in Dart before SQLite insert, throwing [DuplicateCheckInException].
-/// - Full CRUD over past check-ins (add, inspect, edit date/note, delete).
+/// Service for managing check-ins (create, query, update, delete).
 class CheckInService {
   final DatabaseHelper _dbHelper;
   final DateTime Function() _nowProvider;
@@ -22,12 +15,9 @@ class CheckInService {
   })  : _dbHelper = dbHelper ?? DatabaseHelper.instance,
         _nowProvider = nowProvider ?? DateTime.now;
 
-  /// Default singleton instance for app-wide use.
   static final CheckInService instance = CheckInService();
 
-  /// Records a check-in for the current local date for [habitId].
-  ///
-  /// Throws [DuplicateCheckInException] if already checked in today.
+  /// Records a check-in for today.
   Future<CheckIn> checkInToday(int habitId, {String? note}) async {
     final today = CalendarUtils.formatLocalDate(_nowProvider());
     return createCheckIn(CheckIn(
@@ -37,13 +27,7 @@ class CheckInService {
     ));
   }
 
-  /// Creates and persists a new [CheckIn] after validating all integrity rules.
-  ///
-  /// Throws:
-  /// - [ValidationException] if the date format is invalid, precedes the habit start date,
-  ///   or is in the future.
-  /// - [EntityNotFoundException] if the habit does not exist.
-  /// - [DuplicateCheckInException] if a check-in already exists for this habit and date.
+  /// Saves a new check-in after verifying date and habit constraints.
   Future<CheckIn> createCheckIn(CheckIn checkIn) async {
     final habit = await _getHabit(checkIn.habitId);
     if (habit == null) {
@@ -54,7 +38,7 @@ class CheckInService {
 
     final db = await _dbHelper.database;
 
-    // Strict Same-Day Policy: Pre-check in application code before SQLite insert
+    // Make sure we haven't already checked in for this day
     final existing = await db.query(
       DatabaseHelper.tableCheckIns,
       columns: [DatabaseHelper.columnCheckInId],
@@ -153,13 +137,7 @@ class CheckInService {
     return getCheckInsForDateRange(habitId, mondayStr, sundayStr);
   }
 
-  /// Updates an existing [checkIn] (date or note).
-  ///
-  /// Invariants:
-  /// - CheckIn must exist.
-  /// - Habit must exist.
-  /// - New date cannot precede habit start date or be in the future.
-  /// - Strict same-day policy: Cannot change date to one that already has another check-in.
+  /// Updates an existing check-in date or note.
   Future<CheckIn> updateCheckIn(CheckIn checkIn) async {
     if (checkIn.id == null) {
       throw const ValidationException('Cannot update check-in without a valid ID.');
@@ -179,7 +157,7 @@ class CheckInService {
 
     final db = await _dbHelper.database;
 
-    // Strict Same-Day Policy check against OTHER check-ins for the same habit
+    // Prevent conflicting date with another check-in for the same habit
     final duplicate = await db.query(
       DatabaseHelper.tableCheckIns,
       columns: [DatabaseHelper.columnCheckInId],
@@ -216,14 +194,8 @@ class CheckInService {
     );
   }
 
-  /// Returns distinct check-in counts from the last [weekCount] whole, completed
-  /// Monday–Sunday calendar weeks occurring on or after [habit.startedLocalDate].
-  ///
-  /// Rules from AGENTS.md Section 7:
-  /// - Exclude the current in-progress calendar week.
-  /// - Exclude any partial starting week prior to the first full Monday.
-  /// - Max count per week is capped at 7.
-  /// - If fewer than [weekCount] whole weeks exist, returns only the eligible weeks.
+  /// Returns weekly check-in counts for recent completed weeks.
+  /// Skips the current week and partial starting weeks.
   Future<List<int>> getPastCompletedWeeksCheckInCounts(
     Habit habit, {
     int weekCount = 3,
@@ -235,9 +207,8 @@ class CheckInService {
     final List<int> weeklyCounts = [];
     final db = await _dbHelper.database;
 
-    // Iterate backwards from the most recently completed whole week
+    // Work backwards through completed Monday-Sunday weeks
     for (int i = 1; i <= weekCount; i++) {
-      // The completed week's Sunday is (i * 7 - 1) days before current Monday + offset
       final weekSunday = DateTime(
         currentWeekMonday.year,
         currentWeekMonday.month,
@@ -252,8 +223,7 @@ class CheckInService {
       final weekMondayStr = CalendarUtils.formatLocalDate(weekMonday);
       final weekSundayStr = CalendarUtils.formatLocalDate(weekSunday);
 
-      // Section 7 Invariant: Occurring on or after the habit start date.
-      // Must not be a partial week where the habit started after Monday.
+      // Stop if this week started before the habit was created
       if (weekMondayStr.compareTo(habit.startedLocalDate) < 0) {
         break;
       }
@@ -289,10 +259,7 @@ class CheckInService {
     return Habit.fromMap(results.first);
   }
 
-  /// Validates check-in date rules:
-  /// 1. Must be valid YYYY-MM-DD
-  /// 2. Cannot precede habit.startedLocalDate
-  /// 3. Cannot be in the future relative to _nowProvider()
+  /// Checks that the date is valid, on or after habit start date, and not in the future.
   void _validateCheckInDate(String localDate, Habit habit) {
     if (!CalendarUtils.isValidLocalDate(localDate)) {
       throw ValidationException(

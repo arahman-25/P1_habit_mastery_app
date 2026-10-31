@@ -15,7 +15,7 @@ void main() {
     databaseFactory = databaseFactoryFfi;
   });
 
-  group('Group 1: SQLite Schema & DDL Invariants', () {
+  group('SQLite Schema & Tables', () {
     late DatabaseHelper dbHelper;
 
     setUp(() {
@@ -110,7 +110,7 @@ void main() {
     });
   });
 
-  group('Group 2: Relational Constraints & Foreign Key CASCADE', () {
+  group('Foreign Keys & Cascade Deletion', () {
     late DatabaseHelper dbHelper;
 
     setUp(() {
@@ -236,7 +236,7 @@ void main() {
     });
   });
 
-  group('Group 3: Value Domain Constraints (weeklyTarget & Strict Same-Day Policy)', () {
+  group('Value Constraints (weeklyTarget & same-day check-ins)', () {
     late DatabaseHelper dbHelper;
 
     setUp(() {
@@ -345,7 +345,7 @@ void main() {
     });
   });
 
-  group('Group 4: Service-to-Storage Boundary Guards & Invariants', () {
+  group('Service Boundary Guards & Validations', () {
     late DatabaseHelper dbHelper;
     late HabitService habitService;
     late CheckInService checkInService;
@@ -480,7 +480,7 @@ void main() {
     });
   });
 
-  group('Group 5: Storage Lifecycle, Row Auditing & Atomic Reset', () {
+  group('Storage Lifecycle & Database Reset', () {
     late DatabaseHelper dbHelper;
     late SettingsService settingsService;
 

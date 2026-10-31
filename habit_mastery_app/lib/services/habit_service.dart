@@ -4,15 +4,7 @@ import '../models/habit_weekly_progress.dart';
 import '../utils/calendar_utils.dart';
 import 'service_exceptions.dart';
 
-/// Service responsible for Habit entity CRUD operations, integrity validations,
-/// and dynamic calendar week progress calculations.
-///
-/// Follows AGENTS.md Sections 4 & 5 invariants:
-/// - Habits cannot have future start dates (`startedLocalDate <= today`).
-/// - Weekly targets must be strictly bounded between 1 and 7.
-/// - Editing `startedLocalDate` is blocked if saved check-ins exist before the new date.
-/// - Weekly completion rates are computed dynamically across Monday–Sunday weeks.
-/// - Zero cloud dependencies; all operations use parameterized SQLite queries.
+/// Service for creating, updating, deleting, and calculating progress for habits.
 class HabitService {
   final DatabaseHelper _dbHelper;
   final DateTime Function() _nowProvider;
@@ -23,16 +15,9 @@ class HabitService {
   })  : _dbHelper = dbHelper ?? DatabaseHelper.instance,
         _nowProvider = nowProvider ?? DateTime.now;
 
-  /// Default singleton instance for app-wide use.
   static final HabitService instance = HabitService();
 
-  /// Creates and persists a new [Habit] after validating integrity constraints.
-  ///
-  /// Throws [ValidationException] if:
-  /// - [habit.title] is blank
-  /// - [habit.category] is blank
-  /// - [habit.weeklyTarget] is not between 1 and 7
-  /// - [habit.startedLocalDate] is invalid or in the future
+  /// Saves a new habit after checking required fields and target limits.
   Future<Habit> createHabit(Habit habit) async {
     _validateHabitFields(habit);
 
@@ -95,14 +80,7 @@ class HabitService {
     return results.map((row) => Habit.fromMap(row)).toList();
   }
 
-  /// Updates an existing [habit] in SQLite.
-  ///
-  /// Invariants enforced:
-  /// - Habit must already exist in SQLite.
-  /// - Title, category, weeklyTarget (1..7), and start date must be valid.
-  /// - Future start dates are rejected.
-  /// - If [habit.startedLocalDate] is changed to a later date, the update is
-  ///   blocked if any existing check-in dates exist before the proposed date.
+  /// Updates an existing habit.
   Future<Habit> updateHabit(Habit habit) async {
     if (habit.id == null) {
       throw const ValidationException('Cannot update a habit without a valid ID.');
@@ -117,7 +95,7 @@ class HabitService {
 
     final db = await _dbHelper.database;
 
-    // Invariant 4: Blocking start date update if check-ins predate proposed start date
+    // Don't allow changing start date to after existing check-ins
     final conflictingCheckIns = await db.query(
       DatabaseHelper.tableCheckIns,
       columns: [DatabaseHelper.columnCheckInLocalDate],
@@ -150,8 +128,7 @@ class HabitService {
     return sanitized;
   }
 
-  /// Deletes a habit by its [id].
-  /// Due to SQLite `ON DELETE CASCADE`, all associated check-ins are also removed.
+  /// Deletes a habit and its check-ins.
   Future<int> deleteHabit(int id) async {
     final db = await _dbHelper.database;
     return await db.delete(
@@ -161,10 +138,7 @@ class HabitService {
     );
   }
 
-  /// Dynamically computes the weekly completion rate and plant visual tier
-  /// for [habitId] in the Monday–Sunday calendar week containing [referenceDate].
-  ///
-  /// Invariant: Plant tier and percentage are computed on-the-fly and never stored.
+  /// Calculates weekly completion rate and plant stage for the given week.
   Future<HabitWeeklyProgress> getWeeklyProgress(
     int habitId, {
     DateTime? referenceDate,
@@ -232,7 +206,7 @@ class HabitService {
     return progressList;
   }
 
-  /// Validates core habit invariants prior to database writes.
+  /// Basic validation for habit fields.
   void _validateHabitFields(Habit habit) {
     if (habit.title.trim().isEmpty) {
       throw const ValidationException('Habit title cannot be empty.');

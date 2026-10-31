@@ -1,11 +1,6 @@
 import 'package:flutter/foundation.dart';
 
-/// Calendar and date utility functions adhering to local device time policies.
-///
-/// Section 5 of AGENTS.md:
-/// - Dates are formatted strictly as 'YYYY-MM-DD' strings in local device time.
-/// - Calendar weeks are defined from Monday 00:00:00 to Sunday 23:59:59.
-/// - For any date D, Monday = D - (D.weekday - 1) days, Sunday = Monday + 6 days.
+/// Date formatting and Monday-Sunday week helpers.
 @immutable
 class CalendarUtils {
   const CalendarUtils._();
@@ -13,7 +8,6 @@ class CalendarUtils {
   static final RegExp _isoDateRegex = RegExp(r'^\d{4}-\d{2}-\d{2}$');
 
   /// Formats a [DateTime] into a local 'YYYY-MM-DD' string.
-  /// Uses local device time fields directly to avoid UTC day boundary shifts.
   static String formatLocalDate(DateTime dateTime) {
     final year = dateTime.year.toString().padLeft(4, '0');
     final month = dateTime.month.toString().padLeft(2, '0');
@@ -53,9 +47,7 @@ class CalendarUtils {
     }
   }
 
-  /// Returns the Monday of the calendar week containing [date].
-  /// Monday is day 1 of the calendar week (Monday–Sunday) per ISO 8601 & AGENTS.md.
-  /// Uses integer date arithmetic to remain immune to daylight saving shifts.
+  /// Returns the Monday of the week containing [date].
   static DateTime getMondayOfWeek(DateTime date) {
     final offset = date.weekday - DateTime.monday;
     return DateTime(date.year, date.month, date.day - offset);

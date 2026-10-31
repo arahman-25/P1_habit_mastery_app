@@ -234,6 +234,25 @@ void main() {
 
       expect(find.text('No habits in "Mindfulness"'), findsOneWidget);
     });
+
+    testWidgets('category filter chips do not clip or fade end of label text', (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(home: Dashboard()),
+      );
+      await pumpUntilLoaded(tester);
+
+      const categories = ['All', 'Study', 'Health', 'Creative', 'Mindfulness'];
+      for (final cat in categories) {
+        final textFinder = find.descendant(
+          of: find.widgetWithText(ChoiceChip, cat),
+          matching: find.byType(Text),
+        );
+        expect(textFinder, findsOneWidget);
+        final Text textWidget = tester.widget(textFinder);
+        expect(textWidget.overflow, equals(TextOverflow.visible));
+        expect(textWidget.softWrap, isFalse);
+      }
+    });
   });
 
   group('Create / Edit Screen Integration Tests', () {

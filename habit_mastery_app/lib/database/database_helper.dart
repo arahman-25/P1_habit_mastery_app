@@ -64,12 +64,12 @@ class DatabaseHelper {
   }
 
   Future<void> _onConfigure(Database db) async {
-    // Invariant: Enforce SQLite Foreign Key constraints
+    // Enable foreign keys
     await db.execute('PRAGMA foreign_keys = ON');
   }
 
   Future<void> _onCreate(Database db, int version) async {
-    // 1. Settings table for persistent configuration
+    // Settings table
     await db.execute('''
       CREATE TABLE $tableSettings (
         $columnKey TEXT PRIMARY KEY,
@@ -77,7 +77,7 @@ class DatabaseHelper {
       )
     ''');
 
-    // 2. Habits table with weeklyTarget CHECK constraint (1..7)
+    // Habits table
     await db.execute('''
       CREATE TABLE $tableHabits (
         $columnHabitId INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -89,7 +89,7 @@ class DatabaseHelper {
       )
     ''');
 
-    // 3. Check-ins table with cascade deletion and unique same-day constraint
+    // Check-ins table (cascades when habit deleted, 1 check-in per day)
     await db.execute('''
       CREATE TABLE $tableCheckIns (
         $columnCheckInId INTEGER PRIMARY KEY AUTOINCREMENT,

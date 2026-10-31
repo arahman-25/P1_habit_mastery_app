@@ -1,4 +1,4 @@
-/// Base exception class for service validation and business logic constraints.
+/// Base exception for service and data validation errors.
 class ValidationException implements Exception {
   final String message;
   const ValidationException(this.message);
@@ -7,8 +7,7 @@ class ValidationException implements Exception {
   String toString() => message;
 }
 
-/// Thrown when attempting to record a duplicate check-in on the same date for a habit.
-/// Enforces the strict same-day policy before SQLite insert.
+/// Thrown when attempting to check in twice on the same day for a habit.
 class DuplicateCheckInException extends ValidationException {
   final int habitId;
   final String localDate;
@@ -17,7 +16,7 @@ class DuplicateCheckInException extends ValidationException {
       : super('A check-in already exists for habit #$habitId on $localDate.');
 }
 
-/// Thrown when a habit or check-in cannot be found in SQLite.
+/// Thrown when a habit or check-in is not found.
 class EntityNotFoundException extends ValidationException {
   const EntityNotFoundException(super.message);
 }

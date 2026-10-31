@@ -410,7 +410,7 @@ void main() {
       expect(CalendarUtils.getSundayString(sunday), '2026-11-01');
     });
 
-    test('calculates plant tiers according to Section 5 specs', () {
+    test('calculates plant tiers correctly for completion rates', () {
       expect(CalendarUtils.calculatePlantTier(0.0), 0); // Seed in soil
       expect(CalendarUtils.calculatePlantTier(0.25), 1); // Sprout (1% - 49%)
       expect(CalendarUtils.calculatePlantTier(0.50), 2); // Growing bud (50% - 99%)
@@ -427,7 +427,7 @@ void main() {
     });
   });
 
-  group('HabitService CRUD & Invariant Integration Tests', () {
+  group('HabitService CRUD and validation tests', () {
     late DatabaseHelper dbHelper;
     late HabitService habitService;
     final fixedClock = DateTime(2026, 10, 26, 12, 0); // Monday
@@ -707,7 +707,7 @@ void main() {
     });
   });
 
-  group('CheckInService CRUD & Invariant Integration Tests', () {
+  group('CheckInService CRUD and validation tests', () {
     late DatabaseHelper dbHelper;
     late HabitService habitService;
     late CheckInService checkInService;
@@ -1055,7 +1055,7 @@ void main() {
     });
 
     test('over-target completion (125%) caps plant at Tier 3 but displays 125% faithfully', () async {
-      // Example from AGENTS.md Section 5: Target = 4, 5 check-ins -> 5/4 = 125%
+      // Target = 4, 5 check-ins -> 5/4 = 125%
       final habit = await habitService.createHabit(
         const Habit(
           title: 'Guitar Practice',

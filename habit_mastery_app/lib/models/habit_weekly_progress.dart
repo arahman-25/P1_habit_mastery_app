@@ -1,22 +1,17 @@
 import 'package:flutter/foundation.dart';
 import 'habit.dart';
 
-/// Derived model representing the dynamically computed weekly progress of a habit.
-///
-/// Section 4 & 5 of AGENTS.md:
-/// - Plant growth states and weekly percentages are derived dynamically
-///   from SQLite rows and are NEVER stored as separate database entities.
-/// - The numeric completion rate is always accessible (e.g. "3/4 days (75%)").
+/// Holds computed weekly progress for a habit.
 @immutable
 class HabitWeeklyProgress {
   final Habit habit;
-  final String weekStartLocalDate; // YYYY-MM-DD Monday
-  final String weekEndLocalDate;   // YYYY-MM-DD Sunday
-  final int completedDays;         // Distinct completed dates in week
-  final int targetDays;            // habit.weeklyTarget
-  final double completionRate;     // completedDays / targetDays
+  final String weekStartLocalDate; // Monday YYYY-MM-DD
+  final String weekEndLocalDate;   // Sunday YYYY-MM-DD
+  final int completedDays;
+  final int targetDays;
+  final double completionRate;
   final int plantTier;             // 0..3
-  final String plantStageName;     // 'Seed in soil', 'Sprout', 'Growing bud', 'Full bloom'
+  final String plantStageName;
   final List<String> completedDates;
 
   const HabitWeeklyProgress({
@@ -31,13 +26,12 @@ class HabitWeeklyProgress {
     required this.completedDates,
   });
 
-  /// Formatted numeric display string, e.g. "3/4 days (75%)"
+  /// Display string like "3/4 days (75%)"
   String get displayProgress {
     final percent = (completionRate * 100).round();
     return '$completedDays/$targetDays days ($percent%)';
   }
 
-  /// Whether the weekly goal has been achieved or exceeded
   bool get isGoalMet => completedDays >= targetDays;
 
   @override

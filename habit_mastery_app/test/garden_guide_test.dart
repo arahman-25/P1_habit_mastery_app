@@ -13,22 +13,16 @@ void main() {
     databaseFactory = databaseFactoryFfi;
   });
 
-  group('Garden Guide Pure Dart Algorithm — 5 Mandatory Evaluation Fixtures', () {
-    // -------------------------------------------------------------------------
-    // Fixture 1: Normal Case
-    // AGENTS.md Section 7: Completed week counts [2, 3, 4] -> Average 3.0 -> Suggests 3.
-    // -------------------------------------------------------------------------
+  group('Garden Guide Algorithm — 5 Evaluation Fixtures', () {
+    // Fixture 1: Normal Case: [2, 3, 4] -> Average 3.0 -> Suggests 3
     test('Fixture 1 (Normal Case): [2, 3, 4] yields average 3.0 and suggests target 3', () {
       final weeklyCounts = [2, 3, 4];
 
-      // Pure function call
       final suggested = suggestWeeklyTarget(weeklyCounts);
       expect(suggested, 3);
 
-      // Delegated call on GardenGuide
       expect(GardenGuide.suggestTarget(weeklyCounts), 3);
 
-      // Recommendation details
       final recommendation = GardenGuide.evaluate(
         weeklyCounts: weeklyCounts,
         currentTarget: 4,
@@ -44,24 +38,21 @@ void main() {
       expect(recommendation.headline, 'Gentle Adjustment');
     });
 
-    test('Fixture 1 Extension (Normal Rounding): half-up rounding checks', () {
-      // Counts [3, 3, 4] -> Sum = 10, Avg = 3.33 -> floor((10+1)/3) = floor(3.67) = 3
+    test('Fixture 1 Extension: half-up rounding checks', () {
+      // [3, 3, 4] -> sum 10, avg 3.33 -> rounds to 3
       expect(suggestWeeklyTarget([3, 3, 4]), 3);
 
-      // Counts [3, 4, 4] -> Sum = 11, Avg = 3.67 -> floor((11+1)/3) = floor(4.0) = 4
+      // [3, 4, 4] -> sum 11, avg 3.67 -> rounds to 4
       expect(suggestWeeklyTarget([3, 4, 4]), 4);
 
-      // Counts [2, 2, 3] -> Sum = 7, Avg = 2.33 -> floor((7+1)/3) = floor(2.67) = 2
+      // [2, 2, 3] -> sum 7, avg 2.33 -> rounds to 2
       expect(suggestWeeklyTarget([2, 2, 3]), 2);
 
-      // Uses last 3 weeks if more than 3 are passed
-      expect(suggestWeeklyTarget([1, 2, 3, 4]), 3); // last 3 are [2, 3, 4]
+      // Takes only the last 3 weeks if given more
+      expect(suggestWeeklyTarget([1, 2, 3, 4]), 3);
     });
 
-    // -------------------------------------------------------------------------
-    // Fixture 2: No-Data / Insufficient History Case
-    // AGENTS.md Section 7: Habit created last week (< 3 completed weeks) -> returns null / "Not enough history"
-    // -------------------------------------------------------------------------
+    // Fixture 2: No-Data Case: fewer than 3 weeks -> null
     test('Fixture 2 (No-Data Case): returns null and displays "Not enough history" when < 3 weeks', () {
       // Null input
       expect(suggestWeeklyTarget(null), isNull);
@@ -73,7 +64,7 @@ void main() {
       expect(nullRec.suggestedTarget, isNull);
       expect(nullRec.rationale, contains('Not enough history'));
 
-      // Empty list (0 completed weeks)
+      // Empty list
       expect(suggestWeeklyTarget([]), isNull);
 
       // 1 completed week
@@ -98,24 +89,18 @@ void main() {
       expect(twoWeekRec.headline, 'Building Your Baseline');
     });
 
-    // -------------------------------------------------------------------------
-    // Fixture 3: Invalid Case
-    // AGENTS.md Section 7: Counts containing negative numbers or values > 7 are rejected or sanitized.
-    // -------------------------------------------------------------------------
+    // Fixture 3: Invalid Case: counts < 0 or > 7
     test('Fixture 3 (Invalid Case): rejects invalid weekly counts when sanitize is false', () {
-      // Negative count rejected
       expect(
         () => suggestWeeklyTarget([-1, 3, 4], sanitize: false),
         throwsA(isA<ArgumentError>()),
       );
 
-      // Value > 7 rejected
       expect(
         () => suggestWeeklyTarget([8, 2, 3], sanitize: false),
         throwsA(isA<ArgumentError>()),
       );
 
-      // Extreme values rejected
       expect(
         () => suggestWeeklyTarget([3, -10, 5], sanitize: false),
         throwsA(isA<ArgumentError>()),
@@ -126,35 +111,29 @@ void main() {
       );
     });
 
-    test('Fixture 3 Extension (Invalid Sanitization): clamps values into [0, 7] when sanitize is true', () {
-      // Negative count [-2, 3, 4] sanitized to [0, 3, 4] -> Sum = 7 -> floor((7+1)/3) = 2
+    test('Fixture 3 Extension: clamps values into [0, 7] when sanitize is true', () {
+      // [-2, 3, 4] clamped to [0, 3, 4] -> sum 7 -> 2
       final sanitizedNeg = suggestWeeklyTarget([-2, 3, 4], sanitize: true);
       expect(sanitizedNeg, 2);
 
-      // Value > 7 [10, 7, 7] sanitized to [7, 7, 7] -> Sum = 21 -> floor((21+1)/3) = 7
+      // [10, 7, 7] clamped to [7, 7, 7] -> sum 21 -> 7
       final sanitizedHigh = suggestWeeklyTarget([10, 7, 7], sanitize: true);
       expect(sanitizedHigh, 7);
 
-      // Recommendation with sanitization
       final rec = GardenGuide.evaluate(
         weeklyCounts: [-1, 8, 3],
         currentTarget: 3,
         sanitize: true,
       );
-      // Sanitized to [0, 7, 3] -> sum = 10 -> (10+1)~/3 = 3
       expect(rec.hasEnoughHistory, isTrue);
       expect(rec.suggestedTarget, 3);
       expect(rec.completedWeekCounts, [0, 7, 3]);
       expect(rec.averageDaysPerWeek, closeTo(3.33, 0.01));
     });
 
-    // -------------------------------------------------------------------------
-    // Fixture 4: Boundary Case
-    // AGENTS.md Section 7: Three zero-practice weeks [0, 0, 0] -> clamped to 1.
-    //                      Three perfect weeks [7, 7, 7] -> clamped to 7.
-    // -------------------------------------------------------------------------
+    // Fixture 4: Boundary Case: min 1, max 7
     test('Fixture 4 (Boundary Case): [0, 0, 0] clamped to min 1; [7, 7, 7] clamped to max 7', () {
-      // Three zero-practice weeks: Sum = 0, floor((0+1)/3) = 0 -> clamped to minimum 1
+      // 0 check-ins clamped to minimum 1
       final zeroTarget = suggestWeeklyTarget([0, 0, 0]);
       expect(zeroTarget, 1);
 
@@ -170,10 +149,10 @@ void main() {
         contains('Missed days are information, not failure'),
       );
 
-      // Low boundary: [1, 0, 0] -> Sum = 1, floor((1+1)/3) = 0 -> clamped to 1
+      // Low boundary: [1, 0, 0] clamped to 1
       expect(suggestWeeklyTarget([1, 0, 0]), 1);
 
-      // Three perfect practice weeks: Sum = 21, floor((21+1)/3) = 7 -> clamped to maximum 7
+      // 7 check-ins per week clamped to maximum 7
       final perfectTarget = suggestWeeklyTarget([7, 7, 7]);
       expect(perfectTarget, 7);
 
@@ -186,19 +165,13 @@ void main() {
       expect(perfectRec.completedWeekCounts, [7, 7, 7]);
       expect(perfectRec.headline, 'Ready to Bloom');
 
-      // High boundary near max: [6, 7, 7] -> Sum = 20, floor((20+1)/3) = 7 -> clamped to 7
+      // High boundary: [6, 7, 7] clamped to 7
       expect(suggestWeeklyTarget([6, 7, 7]), 7);
     });
 
-    // -------------------------------------------------------------------------
-    // Fixture 5: Counterexample & Data Integrity Case
-    // AGENTS.md Section 7: Accidental duplicate date on a single day does not increase the week count;
-    //                      Zero-count weeks are treated as valid data (not skipped).
-    // -------------------------------------------------------------------------
+    // Fixture 5: Counterexample: zero-count weeks are valid history
     test('Fixture 5 (Counterexample - Zero Weeks): treats 0-count weeks as valid data, not skipped', () {
-      // [0, 3, 3] treats 0 as a valid completed week:
-      // Sum = 6, Avg = 2.0 -> floor((6+1)/3) = 2.
-      // (If 0 were skipped, it would be insufficient history or average of [3, 3] = 3)
+      // [0, 3, 3] treats 0 as a valid week: sum 6, avg 2.0 -> target 2
       final suggested = suggestWeeklyTarget([0, 3, 3]);
       expect(suggested, 2);
 
@@ -257,11 +230,11 @@ void main() {
       await dbHelper.close();
     });
 
-    test('Fixture 5 Integration: Duplicate check-in attempts on same day do not inflate week count and zero-count weeks count as valid data', () async {
-      // Reference date: Monday 2026-10-26
+    test('Fixture 5 Integration: Duplicate check-ins do not inflate count and zero-count weeks are included', () async {
+      // Mock reference date as Monday 2026-10-26
       final refDate = DateTime(2026, 10, 26);
 
-      // Habit started 4 weeks ago: Monday 2026-09-28
+      // Habit started 4 weeks ago
       final habit = await habitService.createHabit(
         const Habit(
           title: 'Morning Yoga',
@@ -273,10 +246,9 @@ void main() {
 
       final db = await dbHelper.database;
 
-      // Week 1 completed (2026-09-28 to 2026-10-04): 0 check-ins (ZERO-COUNT WEEK)
-      // (No entries inserted for Week 1 — it should be treated as 0, not skipped!)
+      // Week 1 (Sep 28 - Oct 04): 0 check-ins (should be counted as 0, not skipped)
 
-      // Week 2 completed (2026-10-05 to 2026-10-11): 3 distinct check-in dates
+      // Week 2 (Oct 05 - Oct 11): 3 check-ins
       await db.insert(
         DatabaseHelper.tableCheckIns,
         CheckIn(habitId: habit.id!, localDate: '2026-10-06').toMap(),
@@ -290,7 +262,7 @@ void main() {
         CheckIn(habitId: habit.id!, localDate: '2026-10-08').toMap(),
       );
 
-      // Week 3 completed (2026-10-12 to 2026-10-18): 4 distinct check-in dates
+      // Week 3 (Oct 12 - Oct 18): 4 check-ins
       await db.insert(
         DatabaseHelper.tableCheckIns,
         CheckIn(habitId: habit.id!, localDate: '2026-10-13').toMap(),
@@ -308,7 +280,7 @@ void main() {
         CheckIn(habitId: habit.id!, localDate: '2026-10-16').toMap(),
       );
 
-      // Week 4 completed (2026-10-19 to 2026-10-25): 2 distinct check-in dates
+      // Week 4 (Oct 19 - Oct 25): 2 check-ins
       await db.insert(
         DatabaseHelper.tableCheckIns,
         CheckIn(habitId: habit.id!, localDate: '2026-10-20').toMap(),
@@ -318,18 +290,13 @@ void main() {
         CheckIn(habitId: habit.id!, localDate: '2026-10-21').toMap(),
       );
 
-      // Current in-progress week (2026-10-26 to 2026-11-01): 1 check-in (MUST BE EXCLUDED)
+      // Current week in progress (Oct 26 - Nov 01): should be excluded
       await db.insert(
         DatabaseHelper.tableCheckIns,
         CheckIn(habitId: habit.id!, localDate: '2026-10-26').toMap(),
       );
 
-      // Test evaluateForHabit:
-      // The last 3 completed weeks are:
-      // - Week 2 (Oct 05-11): 3 check-ins
-      // - Week 3 (Oct 12-18): 4 check-ins
-      // - Week 4 (Oct 19-25): 2 check-ins
-      // Counts = [3, 4, 2] -> Sum = 9, Avg = 3.0 -> Suggests target 3
+      // The last 3 completed weeks are Weeks 2, 3, 4: counts [3, 4, 2] -> avg 3.0 -> suggests 3
       final recommendation = await GardenGuide.evaluateForHabit(
         habit: habit,
         checkInService: checkInService,
@@ -348,7 +315,7 @@ void main() {
     test(
       'evaluateForHabit returns insufficient history when habit is too new',
       () async {
-        // Habit started 10 days ago (only 1 full week completed)
+        // Started 10 days ago (only 1 full week completed)
         final habit = await habitService.createHabit(
           const Habit(
             title: 'Hydration',

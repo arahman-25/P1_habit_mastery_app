@@ -6,14 +6,16 @@ import 'service_exceptions.dart';
 
 /// Service for creating, updating, deleting, and calculating progress for habits.
 class HabitService {
-  final DatabaseHelper _dbHelper;
+  final DatabaseHelper? _customDbHelper;
   final DateTime Function() _nowProvider;
 
   HabitService({
     DatabaseHelper? dbHelper,
     DateTime Function()? nowProvider,
-  })  : _dbHelper = dbHelper ?? DatabaseHelper.instance,
+  })  : _customDbHelper = dbHelper,
         _nowProvider = nowProvider ?? DateTime.now;
+
+  DatabaseHelper get _dbHelper => _customDbHelper ?? DatabaseHelper.instance;
 
   static final HabitService instance = HabitService();
 

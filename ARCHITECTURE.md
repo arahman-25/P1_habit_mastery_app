@@ -107,8 +107,8 @@ These are known gaps between the current source and the course/project requireme
 2. **Dark mode:** a dark-mode preference is saved, but `main.dart` currently supplies a fixed light theme and does not react to it.
 3. **Reduced motion:** the project requirements call for a reduced-motion preference; there is no such setting in `AppSettings` or the settings UI yet.
 4. **Garden Guide comparison evidence:** the implementation and fixture tests cover the recommendation, but the submission documentation still needs a measured comparison with a simple baseline, a stated metric/sample size, and a counterexample with a justified revision or limitation.
-5. **Android release validation:** the current Gradle release build uses the debug signing key. Configure release signing and verify installation/offline restart on the required device/emulator set before distributing the APK.
+5. **Android release validation:** release signing now uses a local RSA keystore and git-ignored properties. The APK signature verifies and the app installed/launched offline on one Pixel 10 emulator. Still verify saved-record persistence after offline restart and test on a second device/emulator before claiming the full two-device requirement.
 
 ## Verification reference
 
-As of October 31, 2026, the repository's Flutter test suite passed 89 tests, `flutter analyze` reported no issues, and an Android release APK build completed. The APK has not been device-tested in this environment. See the root README for the build command and artifact path.
+As of October 31, 2026, the repository's Flutter test suite passed 89 tests, `flutter analyze` reported no issues, and an Android release APK build completed. `apksigner` verified the release APK, and it installed/launched with airplane mode enabled on a Pixel 10 emulator. A second-device test and saved-record offline-restart test remain outstanding. See the root README for signing setup and the artifact path.

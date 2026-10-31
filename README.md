@@ -57,7 +57,16 @@ cd habit_mastery_app
 flutter build apk --release
 ```
 
-The APK is written to `habit_mastery_app/build/app/outputs/flutter-apk/app-release.apk`. **Before distribution, configure the team’s release signing key and install the APK on Android hardware or an emulator.** The current Android Gradle configuration signs release builds with the debug key. A successful build alone does not verify installation or offline restart behavior on a device.
+On a new checkout, first create `habit_mastery_app/android/key.properties` with the team's existing signing values (keep the passwords private; the file is ignored by Git):
+
+```properties
+keyAlias=your-key-alias
+keyPassword=your-key-password
+storeFile=/absolute/path/to/your-release-key.jks
+storePassword=your-store-password
+```
+
+The APK is written to `habit_mastery_app/build/app/outputs/flutter-apk/app-release.apk`. Release builds use the local properties in `habit_mastery_app/android/key.properties` and a keystore outside the repository at `~/.android/habit_mastery_release.jks`. The properties file is git-ignored; do not commit or publicly share either file. Back up the keystore and its password securely because future APK upgrades for this app need the same signing key.
 
 ## Project structure
 
@@ -89,4 +98,4 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for the data model, boundaries, validatio
 
 ## Verification status
 
-On October 31, 2026, `flutter test` passed all 89 tests and `flutter analyze` reported no issues. `flutter build apk --release` completed, producing an approximately 80 MB APK signed with the debug key. No Android device or emulator was connected for installation testing. The current working tree may include uncommitted edits; check `git status` before packaging.
+On October 31, 2026, `flutter test` passed all 89 tests and `flutter analyze` reported no issues. The release APK builds with the team release key; `apksigner` verified its APK Signature Scheme v2 signature. It installed and launched on a Pixel 10 Android emulator in airplane mode, with the dashboard rendered and the app process alive. This verifies one emulator cold launch offline, not two-device use or saved-record persistence across an offline restart. Check `git status` before packaging.

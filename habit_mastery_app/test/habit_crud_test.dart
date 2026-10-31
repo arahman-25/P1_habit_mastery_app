@@ -345,7 +345,6 @@ void main() {
       var counts = await dbHelper.getTableRowCounts();
       expect(counts[DatabaseHelper.tableHabits], 0);
       expect(counts[DatabaseHelper.tableCheckIns], 0);
-      expect(counts[DatabaseHelper.tableSettings], greaterThan(0));
 
       final habitId = await db.insert(
         DatabaseHelper.tableHabits,

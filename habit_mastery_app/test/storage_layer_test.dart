@@ -8,6 +8,7 @@ import 'package:habit_mastery_app/services/habit_service.dart';
 import 'package:habit_mastery_app/services/service_exceptions.dart';
 import 'package:habit_mastery_app/services/settings_service.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import 'settings_test_store.dart';
 
 void main() {
   setUpAll(() {
@@ -40,9 +41,9 @@ void main() {
       );
       final tableNames = tables.map((r) => r['name'] as String).toSet();
 
-      expect(tableNames, contains(DatabaseHelper.tableSettings));
       expect(tableNames, contains(DatabaseHelper.tableHabits));
       expect(tableNames, contains(DatabaseHelper.tableCheckIns));
+      expect(tableNames, hasLength(2));
     });
 
     test('enforces NOT NULL constraints on habits table', () async {
@@ -486,26 +487,22 @@ void main() {
 
     setUp(() {
       dbHelper = DatabaseHelper.forTesting();
-      settingsService = SettingsService(dbHelper: dbHelper);
+      settingsService = SettingsService(
+        dbHelper: dbHelper,
+        preferences: MemoryPreferencesStore(),
+      );
     });
 
     tearDown(() async {
       await dbHelper.close();
     });
 
-    test('seeds default settings on initial database creation', () async {
-      final settings = await dbHelper.getAllSettings();
-      expect(settings['notifications_enabled'], 'true');
-      expect(settings['reminder_time'], '09:00');
-      expect(settings['dark_mode'], 'false');
-      expect(settings['sound_effects'], 'true');
-      expect(settings['haptic_feedback'], 'true');
-      expect(settings['weekly_goal'], '5');
-    });
-
-    test('SettingsService loads and updates settings in SQLite', () async {
+    test('SettingsService loads defaults and persists preferences locally', () async {
       final initial = await settingsService.loadSettings();
       expect(initial.notificationsEnabled, isTrue);
+      expect(initial.reminderTime, '09:00');
+      expect(initial.darkMode, isFalse);
+      expect(initial.weeklyGoal, 5);
 
       const modified = AppSettings(
         notificationsEnabled: false,
@@ -522,9 +519,11 @@ void main() {
       expect(reloaded.notificationsEnabled, isFalse);
       expect(reloaded.reminderTime, '21:15');
       expect(reloaded.darkMode, isTrue);
+      expect(reloaded.reducedMotion, isFalse);
       expect(reloaded.soundEffects, isFalse);
       expect(reloaded.hapticFeedback, isFalse);
       expect(reloaded.weeklyGoal, 6);
+      expect((await settingsService.getStorageInfo())['settingsStore'], 'SharedPreferences');
     });
 
     test('getTableRowCounts tracks row count mutations across CRUD and cascade operations', () async {
@@ -534,7 +533,6 @@ void main() {
       var counts = await dbHelper.getTableRowCounts();
       expect(counts[DatabaseHelper.tableHabits], 0);
       expect(counts[DatabaseHelper.tableCheckIns], 0);
-      expect(counts[DatabaseHelper.tableSettings], greaterThan(0));
 
       // Insert 2 habits
       final habitId1 = await db.insert(
@@ -563,7 +561,7 @@ void main() {
       expect(counts[DatabaseHelper.tableCheckIns], 1);
     });
 
-    test('clearAllData executes atomic transaction resetting all user data while re-seeding default settings', () async {
+    test('clearAllAppData clears local records and resets preferences', () async {
       final db = await dbHelper.database;
 
       // Populate data
@@ -588,12 +586,11 @@ void main() {
       expect(counts[DatabaseHelper.tableCheckIns], 1);
 
       // Clear all data
-      await dbHelper.clearAllData();
+      await settingsService.clearAllAppData();
 
       counts = await dbHelper.getTableRowCounts();
       expect(counts[DatabaseHelper.tableHabits], 0);
       expect(counts[DatabaseHelper.tableCheckIns], 0);
-      expect(counts[DatabaseHelper.tableSettings], greaterThan(0));
 
       final resetSettings = await settingsService.loadSettings();
       expect(resetSettings.notificationsEnabled, isTrue);
@@ -656,7 +653,7 @@ void main() {
       expect(info['path'], isNotEmpty);
       expect(info['rowCounts'], isNotNull);
       final rowCounts = info['rowCounts'] as Map<String, int>;
-      expect(rowCounts[DatabaseHelper.tableSettings], greaterThan(0));
+        expect(info['settingsStore'], 'SharedPreferences');
       expect(rowCounts[DatabaseHelper.tableHabits], equals(0));
       expect(rowCounts[DatabaseHelper.tableCheckIns], equals(0));
     });

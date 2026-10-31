@@ -47,7 +47,7 @@ Students often abandon habit trackers because a single missed day destroys a str
 ### Tech Stack
 - **Framework**: Flutter (Dart SDK `^3.13.2`)
 - **Local Persistence**: `sqflite` (`^2.4.5`) for SQLite on mobile; `sqflite_common_ffi` for automated testing.
-- **Settings Persistence**: SQLite `app_settings` key-value table and/or `SharedPreferences`.
+- **Settings Persistence**: SharedPreferences.
 - **UI & Assets**: `persistent_bottom_nav_bar_v2` (`^6.5.0`), `google_fonts` (`^9.0.0`), `flutter_svg` (`^2.3.0`), `rive` (`^0.14.11`).
 
 ### Directory Structure
@@ -94,7 +94,7 @@ P1_habit_mastery_app/
 
 ## 4. SQLite Data Model & Integrity Rules
 
-The app uses **two related SQLite entities** (`Habit` and `CheckIn`) plus an `app_settings` key-value table:
+The app uses **two related SQLite entities** (`Habit` and `CheckIn`). App preferences are stored separately with SharedPreferences.
 
 ```mermaid
 erDiagram
@@ -112,10 +112,6 @@ erDiagram
         int habitId FK
         string localDate "ISO YYYY-MM-DD"
         string note
-    }
-    AppSettings {
-        string key PK
-        string value
     }
 ```
 
@@ -142,14 +138,6 @@ CREATE TABLE check_ins (
   note TEXT,
   FOREIGN KEY (habitId) REFERENCES habits (id) ON DELETE CASCADE,
   CONSTRAINT uq_habit_date UNIQUE (habitId, localDate)
-);
-```
-
-#### 3. `app_settings`
-```sql
-CREATE TABLE app_settings (
-  key TEXT PRIMARY KEY,
-  value TEXT NOT NULL
 );
 ```
 

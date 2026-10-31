@@ -223,9 +223,13 @@ class _DetailsState extends State<Details> {
   Widget build(BuildContext context) {
     if (_isLoading) {
       return Scaffold(
-        backgroundColor: Colors.green,
+        backgroundColor: Theme.of(context).brightness == Brightness.dark
+            ? const Color(0xFF17231B)
+            : Colors.green,
         appBar: AppBar(
-          backgroundColor: Colors.greenAccent,
+          backgroundColor: Theme.of(context).brightness == Brightness.dark
+              ? const Color(0xFF83C991)
+              : Colors.greenAccent,
           title: Text('Cycle Details', style: GoogleFonts.jetBrainsMono(fontWeight: FontWeight.bold)),
         ),
         body: const Center(child: CircularProgressIndicator(color: Colors.greenAccent)),
@@ -234,8 +238,14 @@ class _DetailsState extends State<Details> {
 
     if (_errorMessage != null || _habit == null || _weeklyProgress == null) {
       return Scaffold(
-        backgroundColor: Colors.green,
-        appBar: AppBar(backgroundColor: Colors.greenAccent),
+        backgroundColor: Theme.of(context).brightness == Brightness.dark
+            ? const Color(0xFF17231B)
+            : Colors.green,
+        appBar: AppBar(
+          backgroundColor: Theme.of(context).brightness == Brightness.dark
+              ? const Color(0xFF83C991)
+              : Colors.greenAccent,
+        ),
         body: Center(
           child: Padding(
             padding: const EdgeInsets.all(24),
@@ -253,9 +263,13 @@ class _DetailsState extends State<Details> {
     final clampedRate = progress.completionRate.clamp(0.0, 1.0);
 
     return Scaffold(
-      backgroundColor: Colors.green,
+      backgroundColor: Theme.of(context).brightness == Brightness.dark
+          ? const Color(0xFF17231B)
+          : Colors.green,
       appBar: AppBar(
-        backgroundColor: Colors.greenAccent,
+        backgroundColor: Theme.of(context).brightness == Brightness.dark
+            ? const Color(0xFF83C991)
+            : Colors.greenAccent,
         shadowColor: Colors.black,
         elevation: 3,
         title: Text(

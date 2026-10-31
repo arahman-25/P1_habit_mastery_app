@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+
 import '../models/app_settings.dart';
+import '../services/app_settings_controller.dart';
 import '../services/settings_service.dart';
 
 class Settings extends StatefulWidget {
@@ -11,7 +13,7 @@ class Settings extends StatefulWidget {
 }
 
 class _SettingsState extends State<Settings> {
-  final SettingsService _settingsService = SettingsService();
+  final SettingsService _settingsService = SettingsService.instance;
 
   AppSettings _settings = const AppSettings();
   bool _isLoading = true;
@@ -57,8 +59,10 @@ class _SettingsState extends State<Settings> {
     });
     try {
       await _settingsService.saveSettings(newSettings);
+      AppSettingsController.instance.update(newSettings);
     } catch (e) {
       if (mounted) {
+        setState(() => _settings = AppSettingsController.instance.settings);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -120,7 +124,7 @@ class _SettingsState extends State<Settings> {
             ),
           ),
           content: Text(
-            'This will clear all habit tracking history and reset all app settings back to default values in SQLite.',
+            'This will clear all habit tracking history and reset app preferences to their defaults.',
             style: GoogleFonts.jetBrainsMono(
               fontSize: 14,
               color: Colors.black87,
@@ -156,6 +160,7 @@ class _SettingsState extends State<Settings> {
     if (confirmed == true) {
       try {
         await _settingsService.clearAllDatabaseData();
+        AppSettingsController.instance.update(const AppSettings());
         await _loadSettings();
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -206,25 +211,23 @@ class _SettingsState extends State<Settings> {
         borderRadius: BorderRadius.circular(6),
         border: Border.all(color: Colors.black, width: 2),
         boxShadow: const [
-          BoxShadow(
-            color: Colors.black26,
-            offset: Offset(2, 2),
-            blurRadius: 0,
-          ),
+          BoxShadow(color: Colors.black26, offset: Offset(2, 2), blurRadius: 0),
         ],
       ),
-      child: Column(
-        children: children,
-      ),
+      child: Column(children: children),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.green,
+      backgroundColor: Theme.of(context).brightness == Brightness.dark
+          ? const Color(0xFF17231B)
+          : Colors.green,
       appBar: AppBar(
-        backgroundColor: Colors.greenAccent,
+        backgroundColor: Theme.of(context).brightness == Brightness.dark
+            ? const Color(0xFF83C991)
+            : Colors.greenAccent,
         shadowColor: Colors.black,
         elevation: 3,
         leading: IconButton(
@@ -242,9 +245,7 @@ class _SettingsState extends State<Settings> {
       ),
       body: _isLoading
           ? const Center(
-              child: CircularProgressIndicator(
-                color: Colors.greenAccent,
-              ),
+              child: CircularProgressIndicator(color: Colors.greenAccent),
             )
           : ListView(
               padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
@@ -276,6 +277,7 @@ class _SettingsState extends State<Settings> {
                         );
                       },
                     ),
+                    const Divider(height: 1, indent: 16, endIndent: 16),
                     const Divider(height: 1, indent: 16, endIndent: 16),
                     ListTile(
                       enabled: _settings.notificationsEnabled,
@@ -343,10 +345,30 @@ class _SettingsState extends State<Settings> {
                       ),
                       value: _settings.darkMode,
                       onChanged: (val) {
-                        _updateSettings(
-                          _settings.copyWith(darkMode: val),
-                        );
+                        _updateSettings(_settings.copyWith(darkMode: val));
                       },
+                    ),
+                    const Divider(height: 1, indent: 16, endIndent: 16),
+                    SwitchListTile(
+                      activeThumbColor: Colors.green,
+                      title: Text(
+                        'Reduced Motion',
+                        style: GoogleFonts.jetBrainsMono(
+                          fontWeight: FontWeight.w500,
+                          fontSize: 15,
+                        ),
+                      ),
+                      subtitle: Text(
+                        'Reduce interface animations',
+                        style: GoogleFonts.jetBrainsMono(
+                          fontSize: 12,
+                          color: Colors.black54,
+                        ),
+                      ),
+                      value: _settings.reducedMotion,
+                      onChanged: (val) => _updateSettings(
+                        _settings.copyWith(reducedMotion: val),
+                      ),
                     ),
                     const Divider(height: 1, indent: 16, endIndent: 16),
                     SwitchListTile(
@@ -367,9 +389,7 @@ class _SettingsState extends State<Settings> {
                       ),
                       value: _settings.soundEffects,
                       onChanged: (val) {
-                        _updateSettings(
-                          _settings.copyWith(soundEffects: val),
-                        );
+                        _updateSettings(_settings.copyWith(soundEffects: val));
                       },
                     ),
                     const Divider(height: 1, indent: 16, endIndent: 16),
@@ -451,10 +471,7 @@ class _SettingsState extends State<Settings> {
                 _buildCard(
                   children: [
                     ListTile(
-                      leading: const Icon(
-                        Icons.storage,
-                        color: Colors.black87,
-                      ),
+                      leading: const Icon(Icons.storage, color: Colors.black87),
                       title: Text(
                         'SQLite Engine',
                         style: GoogleFonts.jetBrainsMono(
@@ -496,6 +513,25 @@ class _SettingsState extends State<Settings> {
                     ),
                     const Divider(height: 1, indent: 16, endIndent: 16),
                     ListTile(
+                      leading: const Icon(Icons.tune, color: Colors.black87),
+                      title: Text(
+                        'App Preferences',
+                        style: GoogleFonts.jetBrainsMono(
+                          fontWeight: FontWeight.w500,
+                          fontSize: 14,
+                        ),
+                      ),
+                      subtitle: Text(
+                        _storageInfo['settingsStore']?.toString() ??
+                            'SharedPreferences',
+                        style: GoogleFonts.jetBrainsMono(
+                          fontSize: 12,
+                          color: Colors.black54,
+                        ),
+                      ),
+                    ),
+                    const Divider(height: 1, indent: 16, endIndent: 16),
+                    ListTile(
                       leading: const Icon(
                         Icons.folder_outlined,
                         color: Colors.black87,
@@ -526,7 +562,7 @@ class _SettingsState extends State<Settings> {
                       child: ElevatedButton.icon(
                         icon: const Icon(Icons.delete_forever, size: 20),
                         label: Text(
-                          'Reset All Database Data',
+                          'Reset All App Data',
                           style: GoogleFonts.jetBrainsMono(
                             fontWeight: FontWeight.bold,
                           ),

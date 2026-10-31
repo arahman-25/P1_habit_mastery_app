@@ -6,13 +6,8 @@ class DatabaseHelper {
   static const int databaseVersion = 1;
 
   // Table names
-  static const String tableSettings = 'app_settings';
   static const String tableHabits = 'habits';
   static const String tableCheckIns = 'check_ins';
-
-  // Settings column names
-  static const String columnKey = 'key';
-  static const String columnValue = 'value';
 
   // Habit column names
   static const String columnHabitId = 'id';
@@ -75,14 +70,6 @@ class DatabaseHelper {
   }
 
   Future<void> _onCreate(Database db, int version) async {
-    // Settings table
-    await db.execute('''
-      CREATE TABLE $tableSettings (
-        $columnKey TEXT PRIMARY KEY,
-        $columnValue TEXT NOT NULL
-      )
-    ''');
-
     // Habits table
     await db.execute('''
       CREATE TABLE $tableHabits (
@@ -107,86 +94,6 @@ class DatabaseHelper {
       )
     ''');
 
-    // Seed default settings
-    final defaultSettings = {
-      'notifications_enabled': 'true',
-      'reminder_time': '09:00',
-      'dark_mode': 'false',
-      'sound_effects': 'true',
-      'haptic_feedback': 'true',
-      'weekly_goal': '5',
-    };
-
-    final batch = db.batch();
-    for (final entry in defaultSettings.entries) {
-      batch.insert(
-        tableSettings,
-        {
-          columnKey: entry.key,
-          columnValue: entry.value,
-        },
-        conflictAlgorithm: ConflictAlgorithm.replace,
-      );
-    }
-    await batch.commit(noResult: true);
-  }
-
-  // Settings operations
-  Future<Map<String, String>> getAllSettings() async {
-    final db = await database;
-    final results = await db.query(tableSettings);
-    final Map<String, String> map = {};
-    for (final row in results) {
-      final key = row[columnKey] as String?;
-      final value = row[columnValue] as String?;
-      if (key != null && value != null) {
-        map[key] = value;
-      }
-    }
-    return map;
-  }
-
-  Future<String?> getSetting(String key) async {
-    final db = await database;
-    final results = await db.query(
-      tableSettings,
-      columns: [columnValue],
-      where: '$columnKey = ?',
-      whereArgs: [key],
-      limit: 1,
-    );
-    if (results.isNotEmpty) {
-      return results.first[columnValue] as String?;
-    }
-    return null;
-  }
-
-  Future<void> setSetting(String key, String value) async {
-    final db = await database;
-    await db.insert(
-      tableSettings,
-      {
-        columnKey: key,
-        columnValue: value,
-      },
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
-  }
-
-  Future<void> setAllSettings(Map<String, String> settings) async {
-    final db = await database;
-    final batch = db.batch();
-    for (final entry in settings.entries) {
-      batch.insert(
-        tableSettings,
-        {
-          columnKey: entry.key,
-          columnValue: entry.value,
-        },
-        conflictAlgorithm: ConflictAlgorithm.replace,
-      );
-    }
-    await batch.commit(noResult: true);
   }
 
   // Database info & maintenance
@@ -217,15 +124,9 @@ class DatabaseHelper {
           await db.rawQuery('SELECT COUNT(*) FROM $tableCheckIns'),
         ) ??
         0;
-    final settingsCount = Sqflite.firstIntValue(
-          await db.rawQuery('SELECT COUNT(*) FROM $tableSettings'),
-        ) ??
-        0;
-
     return {
       tableHabits: habitsCount,
       tableCheckIns: checkInsCount,
-      tableSettings: settingsCount,
     };
   }
 
@@ -234,28 +135,6 @@ class DatabaseHelper {
     await db.transaction((txn) async {
       await txn.delete(tableCheckIns);
       await txn.delete(tableHabits);
-      await txn.delete(tableSettings);
-
-      // Re-seed default settings
-      final defaultSettings = {
-        'notifications_enabled': 'true',
-        'reminder_time': '09:00',
-        'dark_mode': 'false',
-        'sound_effects': 'true',
-        'haptic_feedback': 'true',
-        'weekly_goal': '5',
-      };
-
-      for (final entry in defaultSettings.entries) {
-        await txn.insert(
-          tableSettings,
-          {
-            columnKey: entry.key,
-            columnValue: entry.value,
-          },
-          conflictAlgorithm: ConflictAlgorithm.replace,
-        );
-      }
     });
   }
 

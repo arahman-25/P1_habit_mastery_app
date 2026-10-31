@@ -15,8 +15,9 @@ flowchart TD
   widgets[Reusable widgets<br/>HabitCard · PlantDisplay<br/>GardenGuideCard]
   services[Services<br/>HabitService · CheckInService<br/>SettingsService · GardenGuide]
   models[Models<br/>Habit · CheckIn · AppSettings<br/>HabitWeeklyProgress]
-  db[DatabaseHelper<br/>SQLite schema · constraints<br/>settings · lifecycle]
-  sqlite[(On-device SQLite<br/>habits · check_ins · app_settings)]
+  db[DatabaseHelper<br/>SQLite schema · constraints<br/>habit/check-in lifecycle]
+  sqlite[(On-device SQLite<br/>habits · check_ins)]
+  prefs[(SharedPreferences<br/>app preferences)]
 
   main --> screens
   screens --> widgets
@@ -24,6 +25,7 @@ flowchart TD
   widgets --> models
   services --> models
   services --> db
+  services --> prefs
   db --> sqlite
 ```
 
@@ -32,8 +34,8 @@ flowchart TD
 - **`lib/main.dart`:** initializes Flutter and disables runtime font fetching because JetBrains Mono font files are bundled in the app. It configures the app theme and three persistent bottom tabs: Dashboard, Plant Habit, and History. Details and Settings are opened from the relevant screens.
 - **`lib/screens/`:** owns screen-level presentation state, form input, loading/error feedback, dialogs, and navigation. Screens obtain data through services rather than issuing SQL directly.
 - **`lib/widgets/`:** reusable presentation components. `HabitCard` displays a habit and derived progress; `PlantDisplay` draws the plant tier; `GardenGuideCard` displays a rule-based recommendation and its explicit apply action.
-- **`lib/services/`:** application operations and validation. `HabitService` manages habits and derives weekly progress; `CheckInService` manages check-in CRUD and date/duplicate rules; `SettingsService` maps preferences to the database helper; `GardenGuide` computes recommendations.
-- **`lib/database/database_helper.dart`:** owns the SQLite connection, schema creation, settings persistence, row-count/status queries, reset transaction, and close/reopen lifecycle.
+- **`lib/services/`:** application operations and validation. `HabitService` manages habits and derives weekly progress; `CheckInService` manages check-in CRUD and date/duplicate rules; `SettingsService` stores preferences in SharedPreferences; `GardenGuide` computes recommendations.
+- **`lib/database/database_helper.dart`:** owns the SQLite connection, habit/check-in schema, row-count/status queries, reset transaction, and close/reopen lifecycle.
 - **`lib/models/`:** typed records and view data. `HabitWeeklyProgress` is computed data, not a persisted table/entity.
 - **`lib/utils/calendar_utils.dart`:** ISO local-date validation/formatting and Monday–Sunday calculations.
 
@@ -90,7 +92,7 @@ The method is a deterministic, rule-based estimator. It is not a trained model, 
 
 ## Settings and reset behavior
 
-The database helper creates an `app_settings` key/value table. `AppSettings` converts stored strings to typed fields, and `SettingsService` loads/saves them. New habits read the stored `weekly_goal` as their default target. Database reset deletes check-ins, habits, and settings in one transaction, then seeds default settings again.
+`SettingsService` stores typed preferences in SharedPreferences; SQLite contains only habits and check-ins. New habits read the stored `weekly_goal` as their default target. Reset clears habits and check-ins from SQLite, clears the app's preference keys, and restores defaults. The app-level settings controller applies dark mode and reduced-motion choices.
 
 ## Errors, state, and lifecycle
 
@@ -103,11 +105,8 @@ The database helper creates an `app_settings` key/value table. `AppSettings` con
 
 These are known gaps between the current source and the course/project requirements; this document records them instead of claiming they are complete:
 
-1. **Settings backend:** settings currently use SQLite. The course Habit brief names SharedPreferences for settings, while the project `AGENTS.md` permits SQLite and/or SharedPreferences. Confirm the instructor's accepted interpretation or migrate the preference storage before final submission.
-2. **Dark mode:** a dark-mode preference is saved, but `main.dart` currently supplies a fixed light theme and does not react to it.
-3. **Reduced motion:** the project requirements call for a reduced-motion preference; there is no such setting in `AppSettings` or the settings UI yet.
-4. **Garden Guide comparison evidence:** the implementation and fixture tests cover the recommendation, but the submission documentation still needs a measured comparison with a simple baseline, a stated metric/sample size, and a counterexample with a justified revision or limitation.
-5. **Android release validation:** release signing now uses a local RSA keystore and git-ignored properties. The APK signature verifies and the app installed/launched offline on one Pixel 10 emulator. Still verify saved-record persistence after offline restart and test on a second device/emulator before claiming the full two-device requirement.
+1. **Garden Guide comparison evidence:** the implementation and fixture tests cover the recommendation, but the submission documentation still needs a measured comparison with a simple baseline, a stated metric/sample size, and a counterexample with a justified revision or limitation.
+2. **Android release validation:** release signing uses a local RSA keystore and git-ignored properties. The APK signature verifies and the app installed/launched offline on one Pixel 10 emulator. Still verify saved-record persistence after offline restart and test on a second device/emulator before claiming the full two-device requirement.
 
 ## Verification reference
 

@@ -137,9 +137,13 @@ class _DashboardState extends State<Dashboard> {
     final filtered = _filteredProgressList;
 
     return Scaffold(
-      backgroundColor: Colors.green,
+      backgroundColor: Theme.of(context).brightness == Brightness.dark
+          ? const Color(0xFF17231B)
+          : Colors.green,
       appBar: AppBar(
-        backgroundColor: Colors.greenAccent,
+        backgroundColor: Theme.of(context).brightness == Brightness.dark
+            ? const Color(0xFF83C991)
+            : Colors.greenAccent,
         shadowColor: Colors.black,
         elevation: 3,
         title: Text(
@@ -431,7 +435,9 @@ class SettingButtonState extends State<SettingButton> {
       onTapUp: (_) => setState(() => _isHovered = false),
       onTapCancel: () => setState(() => _isHovered = false),
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
+        duration: MediaQuery.of(context).disableAnimations
+            ? Duration.zero
+            : const Duration(milliseconds: 200),
         margin: const EdgeInsets.all(8),
         padding: const EdgeInsets.all(6),
         alignment: Alignment.center,

@@ -77,10 +77,10 @@ The APK is written to `habit_mastery_app/build/app/outputs/flutter-apk/app-relea
 ├── AI_FEATURE.md
 └── habit_mastery_app/
     ├── lib/
-    │   ├── database/       # SQLite schema, connection, settings storage
+    │   ├── database/       # SQLite schema and habit/check-in storage
     │   ├── models/         # Habit, CheckIn, settings, derived weekly progress
     │   ├── screens/        # Dashboard, editor, details, history, settings
-    │   ├── services/       # CRUD, validation, progress, Garden Guide
+    │   ├── services/       # CRUD, validation, SharedPreferences, Garden Guide
     │   ├── utils/          # Local calendar and week calculations
     │   └── widgets/        # Reusable habit, plant, and Garden Guide views
     └── test/               # Model, database/service, helper, and UI-flow tests

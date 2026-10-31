@@ -11,6 +11,8 @@ import 'package:habit_mastery_app/screens/history.dart';
 import 'package:habit_mastery_app/services/check_in_service.dart';
 import 'package:habit_mastery_app/services/garden_guide.dart';
 import 'package:habit_mastery_app/services/habit_service.dart';
+import 'package:habit_mastery_app/services/settings_service.dart';
+import 'settings_test_store.dart';
 import 'package:habit_mastery_app/utils/calendar_utils.dart';
 import 'package:habit_mastery_app/widgets/garden_guide_card.dart';
 import 'package:habit_mastery_app/widgets/habit_card.dart';
@@ -22,10 +24,14 @@ void main() {
     sqfliteFfiInit();
     databaseFactory = databaseFactoryFfi;
     DatabaseHelper.setTestInstance(DatabaseHelper.forTesting());
+    SettingsService.setInstanceForTesting(
+      SettingsService(preferences: MemoryPreferencesStore()),
+    );
   });
 
   tearDownAll(() {
     DatabaseHelper.setTestInstance(null);
+    SettingsService.setInstanceForTesting(null);
   });
 
   setUp(() {

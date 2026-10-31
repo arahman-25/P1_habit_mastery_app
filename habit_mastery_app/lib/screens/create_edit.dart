@@ -324,9 +324,13 @@ class _CreateEditState extends State<CreateEdit> {
         }
       },
       child: Scaffold(
-        backgroundColor: Colors.green,
+        backgroundColor: Theme.of(context).brightness == Brightness.dark
+            ? const Color(0xFF17231B)
+            : Colors.green,
         appBar: AppBar(
-          backgroundColor: Colors.greenAccent,
+          backgroundColor: Theme.of(context).brightness == Brightness.dark
+              ? const Color(0xFF83C991)
+              : Colors.greenAccent,
           shadowColor: Colors.black,
           elevation: 3,
           title: Text(
